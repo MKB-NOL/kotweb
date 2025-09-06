@@ -1,840 +1,801 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Kotweb - Home</title>
-  <style>
-    :root {
-      --bg: #000000;
-      --orange: #ff7a00;
-      --white: #ffffff;
-      --muted: #bfbfbf;
-      --error: #ff3333;
-      --success: #33ff33;
-      --glass: rgba(255,255,255,0.03);
-      --dropdown-bg: #1a1a1a;
-      --chat-bg: #0a0a0a;
-      --received-msg: #1a1a1a;
-      --sent-msg: #2a1a00;
-      font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kotweb - Home</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg: #000000;
+            --orange: #ff7a00;
+            --white: #ffffff;
+            --muted: #bfbfbf;
+            --error: #ff3333;
+            --success: #00cc66;
+            --glass: rgba(255,255,255,0.03);
+            --chat-received: #1a1a1a;
+            --chat-sent: #262626;
+            --header-height: 60px;
+            --input-height: 70px;
+            font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+        }
 
-    * { box-sizing: border-box; }
-    html, body { height: 100%; margin: 0; background: var(--bg); color: var(--white); }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
 
-    /* Header styling */
-    header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 12px 16px;
-      background: rgba(0,0,0,0.8);
-      border-bottom: 1px solid rgba(255,255,255,0.06);
-      position: sticky;
-      top: 0;
-      z-index: 100;
-    }
+        body {
+            background: var(--bg);
+            color: var(--white);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
 
-    .logo { font-weight: 700; font-size: 20px; color: var(--orange); }
+        /* Header Styles */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 16px;
+            height: var(--header-height);
+            background: rgba(0, 0, 0, 0.9);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
 
-    .header-icons {
-      display: flex;
-      gap: 16px;
-      align-items: center;
-    }
+        .user-info {
+            display: flex;
+            flex-direction: column;
+        }
 
-    .icon-btn {
-      background: none;
-      border: none;
-      color: var(--white);
-      cursor: pointer;
-      font-size: 18px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 36px;
-      height: 36px;
-    }
+        .username {
+            font-size: 16px;
+            font-weight: 600;
+        }
 
-    .icon-btn:hover { color: var(--orange); }
+        .user-level {
+            font-size: 12px;
+            color: var(--orange);
+            margin-top: 2px;
+        }
 
-    .current-system {
-      padding: 6px 12px;
-      background: rgba(255,122,0,0.1);
-      border: 1px solid rgba(255,122,0,0.3);
-      font-size: 12px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
+        .header-icons {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
 
-    .username-display {
-      font-size: 14px;
-      color: var(--muted);
-      margin-right: 10px;
-    }
+        .icon-btn {
+            width: 38px;
+            height: 38px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+            border: none;
+            color: var(--white);
+            cursor: pointer;
+            border-radius: 50%;
+            font-size: 18px;
+            transition: background 0.2s;
+        }
 
-    /* Main chat area */
-    main {
-      display: flex;
-      height: calc(100vh - 120px);
-    }
+        .icon-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
 
-    .sidebar {
-      width: 240px;
-      border-right: 1px solid rgba(255,255,255,0.06);
-      padding: 16px;
-      overflow-y: auto;
-      background: rgba(0,0,0,0.5);
-    }
+        .icon-btn.active {
+            color: var(--orange);
+        }
 
-    .sidebar-section {
-      margin-bottom: 24px;
-    }
+        /* Menu Dropdown */
+        .menu-dropdown {
+            position: absolute;
+            top: calc(var(--header-height) + 5px);
+            right: 15px;
+            background: rgba(20, 20, 20, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 12px;
+            width: 220px;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            display: none;
+        }
 
-    .sidebar-title {
-      font-size: 14px;
-      color: var(--orange);
-      margin-bottom: 12px;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
+        .menu-dropdown.show {
+            display: block;
+            animation: fadeIn 0.2s ease;
+        }
 
-    .chat-room {
-      padding: 10px;
-      margin-bottom: 8px;
-      cursor: pointer;
-      border: 1px solid transparent;
-      font-size: 14px;
-    }
+        .menu-item {
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            cursor: pointer;
+            border-radius: 8px;
+            margin-bottom: 5px;
+            transition: background 0.2s;
+        }
 
-    .chat-room:hover {
-      background: rgba(255,255,255,0.05);
-    }
+        .menu-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
 
-    .chat-room.active {
-      background: rgba(255,122,0,0.1);
-      border-color: rgba(255,122,0,0.3);
-    }
+        .menu-item.active {
+            background: rgba(255, 122, 0, 0.15);
+            border: 1px solid rgba(255, 122, 0, 0.3);
+        }
 
-    .chat-container {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      background: var(--chat-bg);
-    }
+        .menu-item-title {
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
 
-    .chat-header {
-      padding: 12px 16px;
-      border-bottom: 1px solid rgba(255,255,255,0.06);
-      font-weight: 600;
-      background: rgba(0,0,0,0.3);
-    }
+        .menu-item-desc {
+            font-size: 12px;
+            color: var(--muted);
+            padding-left: 26px;
+        }
 
-    .messages-container {
-      flex: 1;
-      overflow-y: auto;
-      padding: 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
+        /* Main Chat Area */
+        main {
+            flex: 1;
+            overflow: hidden;
+            position: relative;
+        }
 
-    .message {
-      max-width: 70%;
-      padding: 12px;
-      position: relative;
-    }
+        .chat-container {
+            height: 100%;
+            overflow-y: auto;
+            padding: 16px;
+            padding-bottom: calc(var(--input-height) + 20px);
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            scroll-behavior: smooth;
+        }
 
-    .message.received {
-      align-self: flex-start;
-      background: var(--received-msg);
-      border-left: 3px solid var(--orange);
-    }
+        /* Message Styles */
+        .message {
+            max-width: 85%;
+            padding: 12px 16px;
+            position: relative;
+            animation: fadeIn 0.3s ease;
+        }
 
-    .message.sent {
-      align-self: flex-end;
-      background: var(--sent-msg);
-      border-right: 3px solid var(--orange);
-    }
+        .message.received {
+            align-self: flex-start;
+            background: var(--chat-received);
+            border-radius: 18px 18px 18px 4px;
+        }
 
-    .message-username {
-      font-weight: 600;
-      font-size: 14px;
-      margin-bottom: 4px;
-      color: var(--orange);
-    }
+        .message.sent {
+            align-self: flex-end;
+            background: var(--chat-sent);
+            border-radius: 18px 18px 4px 18px;
+        }
 
-    .message-content {
-      margin-bottom: 4px;
-      word-break: break-word;
-    }
+        .message-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 6px;
+        }
 
-    .message-time {
-      font-size: 11px;
-      color: var(--muted);
-      text-align: right;
-    }
+        .message-sender {
+            font-weight: 700;
+            font-size: 14px;
+            color: var(--orange);
+        }
 
-    .message.violation .message-content {
-      filter: blur(5px);
-      color: var(--error);
-      position: relative;
-    }
+        .message-time {
+            font-size: 11px;
+            color: var(--muted);
+        }
 
-    .message.violation .message-content::after {
-      content: "Violation";
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      color: var(--error);
-      font-weight: bold;
-      filter: none;
-    }
+        .message-content {
+            font-size: 15px;
+            line-height: 1.4;
+            word-break: break-word;
+        }
 
-    .message-actions {
-      position: absolute;
-      top: 8px;
-      right: 8px;
-      display: none;
-      gap: 8px;
-    }
+        .message-image {
+            max-width: 100%;
+            margin-top: 8px;
+            border-radius: 12px;
+            overflow: hidden;
+        }
 
-    .message:hover .message-actions {
-      display: flex;
-    }
+        .message-image img {
+            width: 100%;
+            border-radius: 12px;
+        }
 
-    .message-action {
-      background: rgba(0,0,0,0.7);
-      border: none;
-      color: var(--white);
-      width: 24px;
-      height: 24px;
-      border-radius: 0;
-      cursor: pointer;
-      font-size: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
+        .violation {
+            filter: blur(5px);
+            position: relative;
+        }
 
-    .message-action:hover {
-      background: var(--orange);
-      color: black;
-    }
+        .violation-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: var(--error);
+            font-weight: bold;
+            z-index: 10;
+        }
 
-    .input-area {
-      padding: 16px;
-      border-top: 1px solid rgba(255,255,255,0.06);
-      background: rgba(0,0,0,0.3);
-    }
+        .message-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 8px;
+            font-size: 12px;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
 
-    .message-input-container {
-      display: flex;
-      gap: 12px;
-    }
+        .message:hover .message-actions {
+            opacity: 1;
+        }
 
-    .message-input {
-      flex: 1;
-      padding: 12px;
-      background: rgba(255,255,255,0.05);
-      border: 1px solid rgba(255,255,255,0.1);
-      color: var(--white);
-      outline: none;
-      resize: none;
-      min-height: 44px;
-      max-height: 120px;
-      border-radius: 22px;
-    }
+        .action-btn {
+            color: var(--muted);
+            cursor: pointer;
+            font-size: 13px;
+        }
 
-    .message-input:focus {
-      border-color: var(--orange);
-    }
+        .action-btn:hover {
+            color: var(--white);
+        }
 
-    .send-btn, .upload-btn {
-      background: var(--orange);
-      color: black;
-      border: none;
-      width: 44px;
-      height: 44px;
-      border-radius: 50%;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 18px;
-    }
+        /* Input Area */
+        .input-area {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 12px 16px;
+            background: rgba(0, 0, 0, 0.9);
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            z-index: 90;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
 
-    .upload-btn {
-      background: rgba(255,255,255,0.1);
-      color: var(--white);
-    }
+        .message-input-container {
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+        }
 
-    .upload-btn:hover {
-      background: rgba(255,255,255,0.2);
-    }
+        .message-input {
+            flex: 1;
+            padding: 12px 16px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: var(--white);
+            resize: none;
+            min-height: 46px;
+            max-height: 120px;
+            font-family: inherit;
+            font-size: 15px;
+            border-radius: 23px;
+            line-height: 1.4;
+            transition: border-color 0.2s;
+        }
 
-    .notification {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      padding: 12px 16px;
-      background: var(--orange);
-      color: black;
-      border-radius: 0;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-      z-index: 1000;
-      display: none;
-    }
+        .message-input:focus {
+            outline: none;
+            border-color: var(--orange);
+        }
 
-    /* Responsive design */
-    @media (max-width: 768px) {
-      .sidebar {
-        width: 80px;
-        padding: 10px;
-      }
-      
-      .sidebar-title, .chat-room-name {
-        display: none;
-      }
-      
-      .chat-room {
-        text-align: center;
-        font-size: 20px;
-        padding: 12px 0;
-      }
-      
-      .message {
-        max-width: 85%;
-      }
-    }
+        .send-btn {
+            width: 46px;
+            height: 46px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--orange);
+            color: #000;
+            border: none;
+            cursor: pointer;
+            border-radius: 50%;
+            font-size: 18px;
+            transition: transform 0.2s;
+        }
 
-    /* Loading spinner */
-    .spinner {
-      display: inline-block;
-      width: 20px;
-      height: 20px;
-      border: 3px solid rgba(255,255,255,.3);
-      border-top: 3px solid var(--orange);
-      animation: spin 1s linear infinite;
-      border-radius: 50%;
-    }
+        .send-btn:active {
+            transform: scale(0.95);
+        }
 
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-  </style>
+        .upload-btn {
+            width: 46px;
+            height: 46px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+            border: none;
+            color: var(--white);
+            cursor: pointer;
+            font-size: 20px;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 12px 18px;
+            background: var(--success);
+            color: #000;
+            font-weight: 600;
+            border-radius: 8px;
+            z-index: 1000;
+            display: none;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .notification.show {
+            display: block;
+            animation: slideIn 0.3s ease, fadeOut 0.3s ease 2.7s forwards;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; visibility: hidden; }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .username {
+                font-size: 15px;
+            }
+            
+            .user-level {
+                font-size: 11px;
+            }
+            
+            .message {
+                max-width: 90%;
+            }
+            
+            .icon-btn {
+                width: 36px;
+                height: 36px;
+            }
+        }
+
+        /* Message status indicators */
+        .message-status {
+            font-size: 11px;
+            color: var(--muted);
+            text-align: right;
+            margin-top: 4px;
+        }
+        
+        .message-status i {
+            margin-right: 3px;
+        }
+    </style>
 </head>
 <body>
-  <header>
-    <div class="logo">KOTWEB</div>
-    <div class="current-system">
-      <span id="system-icon">🌐</span>
-      <span id="current-system-text">In District</span>
-    </div>
-    <div class="header-icons">
-      <span class="username-display" id="username-display">@username</span>
-      <button class="icon-btn" title="Status" onclick="openPage('status.html')">📊</button>
-      <button class="icon-btn" title="Search" onclick="openPage('search.html')">🔍</button>
-      <button class="icon-btn" title="Read" onclick="openPage('terms.html')">📖</button>
-      <button class="icon-btn" title="Settings" onclick="openPage('settings.html')">⚙️</button>
-      <button class="icon-btn" title="Menu" id="menu-btn">☰</button>
-    </div>
-  </header>
-
-  <main>
-    <aside class="sidebar">
-      <div class="sidebar-section">
-        <div class="sidebar-title">Rwanda Public</div>
-        <div class="chat-room active" data-room="rwanda">
-          <div class="chat-room-name">Rwanda Public</div>
+    <header>
+        <div class="user-info">
+            <div class="username" id="username-display">@john_doe</div>
+            <div class="user-level" id="user-level">District Level • Gasabo</div>
         </div>
-      </div>
-
-      <div class="sidebar-section">
-        <div class="sidebar-title">Classes</div>
-        <div class="chat-room" data-room="senior1">
-          <div class="chat-room-name">Senior 1</div>
-        </div>
-        <div class="chat-room" data-room="senior2">
-          <div class="chat-room-name">Senior 2</div>
-        </div>
-        <div class="chat-room" data-room="senior3">
-          <div class="chat-room-name">Senior 3</div>
-        </div>
-        <div class="chat-room" data-room="senior4">
-          <div class="chat-room-name">Senior 4</div>
-        </div>
-        <div class="chat-room" data-room="senior5">
-          <div class="chat-room-name">Senior 5</div>
-        </div>
-        <div class="chat-room" data-room="senior6">
-          <div class="chat-room-name">Senior 6</div>
-        </div>
-      </div>
-
-      <div class="sidebar-section">
-        <div class="sidebar-title">Districts</div>
-        <div class="chat-room" data-room="gasabo">
-          <div class="chat-room-name">Gasabo</div>
-        </div>
-        <div class="chat-room" data-room="kicukiro">
-          <div class="chat-room-name">Kicukiro</div>
-        </div>
-        <div class="chat-room" data-room="nyarugenge">
-          <div class="chat-room-name">Nyarugenge</div>
-        </div>
-        <!-- More districts would be loaded dynamically -->
-      </div>
-    </aside>
-
-    <section class="chat-container">
-      <div class="chat-header" id="active-chat-header">
-        Rwanda Public Chat
-      </div>
-      
-      <div class="messages-container" id="messages-container">
-        <!-- Messages will be loaded here -->
-        <div class="message received">
-          <div class="message-username">@john_doe</div>
-          <div class="message-content">Hello everyone! Welcome to Kotweb 👋</div>
-          <div class="message-time">Today, 10:30 AM</div>
-          <div class="message-actions">
-            <button class="message-action" title="Reply">↩</button>
-          </div>
+        <div class="header-icons">
+            <button class="icon-btn" onclick="openPage('status.html')" title="Status">
+                <i class="fas fa-chart-line"></i>
+            </button>
+            <button class="icon-btn" onclick="openPage('search.html')" title="Search">
+                <i class="fas fa-search"></i>
+            </button>
+            <button class="icon-btn" onclick="openPage('terms.html')" title="Read">
+                <i class="fas fa-file-alt"></i>
+            </button>
+            <button class="icon-btn" onclick="openPage('settings.html')" title="Settings">
+                <i class="fas fa-cog"></i>
+            </button>
+            <button class="icon-btn" id="menu-btn" title="Menu">
+                <i class="fas fa-ellipsis-h"></i>
+            </button>
         </div>
         
-        <div class="message sent">
-          <div class="message-username">@you</div>
-          <div class="message-content">Hi John! Glad to be here. This platform looks amazing!</div>
-          <div class="message-time">Today, 10:32 AM</div>
-          <div class="message-actions">
-            <button class="message-action" title="Edit">✏️</button>
-            <button class="message-action" title="Delete">🗑️</button>
-          </div>
+        <!-- Menu Dropdown -->
+        <div class="menu-dropdown" id="menu-dropdown">
+            <div class="menu-item active" data-level="district">
+                <div class="menu-item-title">
+                    <i class="fas fa-map-marker-alt"></i>
+                    District Level
+                </div>
+                <div class="menu-item-desc">Chat with people in your district</div>
+            </div>
+            <div class="menu-item" data-level="country">
+                <div class="menu-item-title">
+                    <i class="fas fa-globe"></i>
+                    Country Level
+                </div>
+                <div class="menu-item-desc">Access the country level chat</div>
+            </div>
         </div>
-        
-        <div class="message received violation">
-          <div class="message-username">@bad_user</div>
-          <div class="message-content">This is an inappropriate message that contains blocked words</div>
-          <div class="message-time">Today, 10:33 AM</div>
-          <div class="message-actions">
-            <button class="message-action" title="Report">⚠️</button>
-          </div>
-        </div>
-      </div>
-      
-      <div class="input-area">
-        <div class="message-input-container">
-          <textarea 
-            class="message-input" 
-            id="message-input" 
-            placeholder="Type your message..." 
-            rows="1"
-          ></textarea>
-          <input type="file" id="image-upload" accept="image/*" style="display: none;">
-          <button class="upload-btn" id="upload-trigger" title="Upload image">📷</button>
-          <button class="send-btn" id="send-button" title="Send message">➤</button>
-        </div>
-      </div>
-    </section>
-  </main>
+    </header>
 
-  <div class="notification" id="notification">
-    New message received
-  </div>
-
-  <audio id="message-sound" preload="auto">
-    <source src="message.mp3" type="audio/mpeg">
-  </audio>
-
-  <!-- Firebase SDK -->
-  <script type="module">
-    // Import the functions you need from the SDKs you need
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
-    import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-analytics.js";
-    import { 
-      getAuth, 
-      onAuthStateChanged,
-      signOut 
-    } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
-    import { 
-      getFirestore, 
-      collection, 
-      addDoc, 
-      query, 
-      where, 
-      orderBy, 
-      onSnapshot,
-      updateDoc,
-      deleteDoc,
-      doc,
-      serverTimestamp,
-      getDocs
-    } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
-    import { getMessaging, onMessage } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-messaging.js";
-
-    // Firebase configuration
-    const firebaseConfig = {
-      apiKey: "AIzaSyAsfXkzcFVmsQLWGF_WqCPQWn7SRqkcvK8",
-      authDomain: "kotweb-dd995.firebaseapp.com",
-      projectId: "kotweb-dd995",
-      storageBucket: "kotweb-dd995.firebasestorage.app",
-      messagingSenderId: "534760591484",
-      appId: "1:534760591484:web:1c90379da7852ddec2f9f9",
-      measurementId: "G-9ZH53YSQZT"
-    };
-
-    // Initialize Firebase
-    const app = initializeApp(firebaseConfig);
-    const analytics = getAnalytics(app);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-    const messaging = getMessaging(app);
-
-    // Global variables
-    let currentUser = null;
-    let currentChatRoom = 'rwanda';
-    let currentUserData = null;
-
-    // Inappropriate words filter
-    const inappropriateWords = ['fuck', 'shit', 'asshole', 'bitch', 'cunt', 'nigger', 'retard', 'fag', 'hack', 'hacking', 'cheat', 'cheating'];
-
-    // DOM elements
-    const messagesContainer = document.getElementById('messages-container');
-    const messageInput = document.getElementById('message-input');
-    const sendButton = document.getElementById('send-button');
-    const uploadTrigger = document.getElementById('upload-trigger');
-    const imageUpload = document.getElementById('image-upload');
-    const usernameDisplay = document.getElementById('username-display');
-    const activeChatHeader = document.getElementById('active-chat-header');
-    const notification = document.getElementById('notification');
-    const messageSound = document.getElementById('message-sound');
-    const currentSystemText = document.getElementById('current-system-text');
-    const systemIcon = document.getElementById('system-icon');
-
-    // Check authentication state
-    onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        currentUser = user;
-        usernameDisplay.textContent = `@${user.displayName || 'user'}`;
-        
-        // Get user data from Firestore
-        const usersRef = collection(db, "users");
-        const q = query(usersRef, where("uid", "==", user.uid));
-        const querySnapshot = await getDocs(q);
-        
-        if (!querySnapshot.empty) {
-          currentUserData = querySnapshot.docs[0].data();
-          loadChatRooms();
-          loadMessages(currentChatRoom);
-        } else {
-          console.error("User data not found");
-          signOut(auth);
-        }
-      } else {
-        // Redirect to login if not authenticated
-        window.location.href = 'login.html';
-      }
-    });
-
-    // Load chat rooms based on user data
-    function loadChatRooms() {
-      if (!currentUserData) return;
-      
-      // Enable class-specific rooms based on user's class
-      const userClass = currentUserData.class;
-      document.querySelectorAll('.chat-room[data-room]').forEach(room => {
-        const roomName = room.dataset.room;
-        
-        if (roomName.startsWith('senior')) {
-          // Only enable the room for the user's class
-          if (roomName === userClass.toLowerCase().replace(' ', '')) {
-            room.style.opacity = '1';
-            room.style.cursor = 'pointer';
-          } else {
-            room.style.opacity = '0.5';
-            room.style.cursor = 'not-allowed';
-          }
-        }
-        
-        // Enable district rooms
-        if (roomName === currentUserData.district.toLowerCase()) {
-          room.style.opacity = '1';
-          room.style.cursor = 'pointer';
-        }
-      });
-    }
-
-    // Load messages for a specific chat room
-    function loadMessages(room) {
-      // Clear current messages
-      messagesContainer.innerHTML = '';
-      
-      // Update active room
-      document.querySelectorAll('.chat-room').forEach(r => {
-        r.classList.remove('active');
-      });
-      document.querySelector(`.chat-room[data-room="${room}"]`).classList.add('active');
-      
-      // Update header
-      activeChatHeader.textContent = getRoomDisplayName(room);
-      
-      // Determine collection path based on room type
-      let collectionPath;
-      if (room === 'rwanda') {
-        collectionPath = `rwanda/${currentUserData.class.toLowerCase().replace(' ', '')}/messages`;
-      } else if (room.startsWith('senior')) {
-        collectionPath = `classes/${room}/messages`;
-      } else {
-        // District room
-        collectionPath = `districts/${room}/${currentUserData.class.toLowerCase().replace(' ', '')}/messages`;
-      }
-      
-      // Set up real-time listener
-      const q = query(
-        collection(db, collectionPath),
-        orderBy('timestamp', 'asc')
-      );
-      
-      onSnapshot(q, (snapshot) => {
-        snapshot.docChanges().forEach((change) => {
-          if (change.type === 'added') {
-            displayMessage(change.doc.data());
+    <main>
+        <div class="chat-container" id="chat-container">
+            <!-- Messages will be dynamically inserted here -->
+            <div class="message received">
+                <div class="message-header">
+                    <span class="message-sender">System</span>
+                    <span class="message-time">Today, 10:30 AM</span>
+                </div>
+                <div class="message-content">
+                    Welcome to Kotweb! This is the district chat for Senior 4 students in Gasabo.
+                </div>
+            </div>
             
-            // Play sound and show notification if message is from another user
-            if (change.doc.data().uid !== currentUser.uid) {
-              playMessageSound();
-              showNotification(`New message from ${change.doc.data().username}`);
-            }
-          }
-        });
-      });
-    }
-
-    // Display a message in the chat
-    function displayMessage(messageData) {
-      const messageDiv = document.createElement('div');
-      messageDiv.classList.add('message');
-      messageDiv.classList.add(messageData.uid === currentUser.uid ? 'sent' : 'received');
-      
-      // Check for inappropriate content
-      const hasInappropriateContent = inappropriateWords.some(word => 
-        messageData.text.toLowerCase().includes(word)
-      );
-      
-      if (hasInappropriateContent) {
-        messageDiv.classList.add('violation');
-      }
-      
-      messageDiv.innerHTML = `
-        <div class="message-username">@${messageData.username}</div>
-        <div class="message-content">${messageData.text}</div>
-        <div class="message-time">${formatTime(messageData.timestamp?.toDate())}</div>
-        <div class="message-actions">
-          ${messageData.uid === currentUser.uid ? `
-            <button class="message-action" title="Edit" onclick="editMessage('${messageData.id}')">✏️</button>
-            <button class="message-action" title="Delete" onclick="deleteMessage('${messageData.id}')">🗑️</button>
-          ` : `
-            <button class="message-action" title="Reply" onclick="replyToMessage('${messageData.username}')">↩</button>
-            <button class="message-action" title="Report" onclick="reportMessage('${messageData.id}')">⚠️</button>
-          `}
+            <div class="message sent">
+                <div class="message-header">
+                    <span class="message-sender">You</span>
+                    <span class="message-time">Today, 10:32 AM</span>
+                </div>
+                <div class="message-content">
+                    Hello everyone! Glad to be here 👋
+                </div>
+                <div class="message-status">
+                    <i class="fas fa-check-double"></i> Delivered
+                </div>
+            </div>
+            
+            <div class="message received">
+                <div class="message-header">
+                    <span class="message-sender">@mary_jane</span>
+                    <span class="message-time">Today, 10:35 AM</span>
+                </div>
+                <div class="message-content">
+                    Hey there! Welcome to the group. How's everyone doing today?
+                </div>
+            </div>
+            
+            <div class="message received violation">
+                <div class="message-header">
+                    <span class="message-sender">@bad_user</span>
+                    <span class="message-time">Today, 10:36 AM</span>
+                </div>
+                <div class="message-content">
+                    This is an inappropriate message that contains blocked words
+                </div>
+                <div class="violation-text">Violation</div>
+            </div>
         </div>
-      `;
-      
-      messagesContainer.appendChild(messageDiv);
-      messagesContainer.scrollTop = messagesContainer.scrollHeight;
-    }
+    </main>
 
-    // Send a new message
-    async function sendMessage() {
-      const text = messageInput.value.trim();
-      if (!text) return;
-      
-      // Determine collection path based on current room
-      let collectionPath;
-      if (currentChatRoom === 'rwanda') {
-        collectionPath = `rwanda/${currentUserData.class.toLowerCase().replace(' ', '')}/messages`;
-      } else if (currentChatRoom.startsWith('senior')) {
-        collectionPath = `classes/${currentChatRoom}/messages`;
-      } else {
-        // District room
-        collectionPath = `districts/${currentChatRoom}/${currentUserData.class.toLowerCase().replace(' ', '')}/messages`;
-      }
-      
-      try {
-        await addDoc(collection(db, collectionPath), {
-          text: text,
-          uid: currentUser.uid,
-          username: currentUserData.username,
-          timestamp: serverTimestamp(),
-          hasImage: false
+    <div class="input-area">
+        <div class="message-input-container">
+            <textarea class="message-input" id="message-input" placeholder="Type your message..." rows="1"></textarea>
+            <button class="upload-btn" id="upload-btn" title="Upload image">
+                <i class="fas fa-image"></i>
+            </button>
+            <button class="send-btn" id="send-btn">
+                <i class="fas fa-paper-plane"></i>
+            </button>
+        </div>
+    </div>
+
+    <div class="notification" id="notification">
+        <i class="fas fa-comment-dots"></i> New message from @mary_jane
+    </div>
+
+    <audio id="message-sound" preload="auto">
+        <source src="message.mp3" type="audio/mpeg">
+    </audio>
+    
+    <input type="file" id="image-upload" accept="image/*" style="display: none;">
+
+    <script>
+        // DOM elements
+        const chatContainer = document.getElementById('chat-container');
+        const messageInput = document.getElementById('message-input');
+        const sendButton = document.getElementById('send-btn');
+        const uploadButton = document.getElementById('upload-btn');
+        const imageUpload = document.getElementById('image-upload');
+        const notification = document.getElementById('notification');
+        const messageSound = document.getElementById('message-sound');
+        const menuBtn = document.getElementById('menu-btn');
+        const menuDropdown = document.getElementById('menu-dropdown');
+        const userLevel = document.getElementById('user-level');
+        const menuItems = document.querySelectorAll('.menu-item');
+        
+        // Current user data (would come from Firebase in a real app)
+        const currentUser = {
+            username: 'john_doe',
+            district: 'Gasabo',
+            class: 'Senior 4',
+            currentLevel: 'district' // district or country
+        };
+        
+        // Initialize the page
+        document.getElementById('username-display').textContent = `@${currentUser.username}`;
+        updateLevelDisplay();
+        
+        // Menu toggle
+        menuBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            menuDropdown.classList.toggle('show');
         });
         
-        messageInput.value = '';
-        messageInput.style.height = 'auto';
-      } catch (error) {
-        console.error('Error sending message:', error);
-        alert('Failed to send message. Please try again.');
-      }
-    }
-
-    // Upload image using ImgBB API
-    async function uploadImage(file) {
-      const formData = new FormData();
-      formData.append('image', file);
-      
-      try {
-        const response = await fetch('https://api.imgbb.com/1/upload?key=6d94d15b3d7c33ecc4c1ebdfa5e69a92', {
-          method: 'POST',
-          body: formData
+        // Close menu when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!menuDropdown.contains(e.target) && e.target !== menuBtn) {
+                menuDropdown.classList.remove('show');
+            }
         });
         
-        const data = await response.json();
-        return data.data.url;
-      } catch (error) {
-        console.error('Error uploading image:', error);
-        alert('Failed to upload image. Please try again.');
-        return null;
-      }
-    }
-
-    // Format timestamp
-    function formatTime(date) {
-      if (!date) return 'Just now';
-      
-      const now = new Date();
-      const diff = now - date;
-      
-      if (diff < 60000) return 'Just now';
-      if (diff < 3600000) return `${Math.floor(diff / 60000)} min ago`;
-      
-      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    }
-
-    // Play message sound
-    function playMessageSound() {
-      messageSound.currentTime = 0;
-      messageSound.play().catch(e => console.log('Audio play failed:', e));
-    }
-
-    // Show notification
-    function showNotification(text) {
-      notification.textContent = text;
-      notification.style.display = 'block';
-      
-      setTimeout(() => {
-        notification.style.display = 'none';
-      }, 3000);
-    }
-
-    // Get display name for a room
-    function getRoomDisplayName(room) {
-      switch(room) {
-        case 'rwanda': return 'Rwanda Public Chat';
-        case 'senior1': return 'Senior 1 Chat';
-        case 'senior2': return 'Senior 2 Chat';
-        case 'senior3': return 'Senior 3 Chat';
-        case 'senior4': return 'Senior 4 Chat';
-        case 'senior5': return 'Senior 5 Chat';
-        case 'senior6': return 'Senior 6 Chat';
-        default: return `${room.charAt(0).toUpperCase() + room.slice(1)} District Chat`;
-      }
-    }
-
-    // Set up event listeners
-    sendButton.addEventListener('click', sendMessage);
-    
-    messageInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        sendMessage();
-      }
-      
-      // Auto-resize textarea
-      setTimeout(() => {
-        messageInput.style.height = 'auto';
-        messageInput.style.height = Math.min(messageInput.scrollHeight, 120) + 'px';
-      }, 0);
-    });
-    
-    uploadTrigger.addEventListener('click', () => {
-      imageUpload.click();
-    });
-    
-    imageUpload.addEventListener('change', async (e) => {
-      if (e.target.files.length > 0) {
-        const imageUrl = await uploadImage(e.target.files[0]);
-        if (imageUrl) {
-          messageInput.value = messageInput.value + ` [Image: ${imageUrl}] `;
-        }
-      }
-    });
-    
-    // Chat room selection
-    document.querySelectorAll('.chat-room').forEach(room => {
-      room.addEventListener('click', () => {
-        if (room.style.cursor === 'not-allowed') return;
+        // Level selection
+        menuItems.forEach(item => {
+            item.addEventListener('click', () => {
+                const level = item.dataset.level;
+                
+                // Update active item
+                menuItems.forEach(i => i.classList.remove('active'));
+                item.classList.add('active');
+                
+                // Update user level
+                currentUser.currentLevel = level;
+                updateLevelDisplay();
+                
+                // In a real app, this would load the appropriate chat
+                addSystemMessage(`Switched to ${level} level chat`);
+                
+                // Close menu
+                menuDropdown.classList.remove('show');
+            });
+        });
         
-        currentChatRoom = room.dataset.room;
-        loadMessages(currentChatRoom);
-        
-        // Update system display
-        if (currentChatRoom === 'rwanda') {
-          currentSystemText.textContent = 'In Rwanda';
-          systemIcon.textContent = '🌐';
-        } else if (currentChatRoom.startsWith('senior')) {
-          currentSystemText.textContent = `In ${currentChatRoom.charAt(0).toUpperCase() + currentChatRoom.slice(1)}`;
-          systemIcon.textContent = '🎓';
-        } else {
-          currentSystemText.textContent = `In ${currentChatRoom.charAt(0).toUpperCase() + currentChatRoom.slice(1)}`;
-          systemIcon.textContent = '🗺️';
+        function updateLevelDisplay() {
+            const levelText = currentUser.currentLevel === 'district' 
+                ? `District Level • ${currentUser.district}`
+                : 'Country Level • Rwanda';
+                
+            userLevel.textContent = levelText;
         }
-      });
-    });
-
-    // Set up Firebase Cloud Messaging
-    onMessage(messaging, (payload) => {
-      console.log('Message received:', payload);
-      showNotification(payload.notification.title);
-      playMessageSound();
-    });
-
-    // Global functions for message actions
-    window.editMessage = async (messageId) => {
-      const newText = prompt('Edit your message:');
-      if (newText !== null) {
-        // Implementation for editing message
-        console.log('Edit message:', messageId, newText);
-      }
-    };
-
-    window.deleteMessage = async (messageId) => {
-      if (confirm('Are you sure you want to delete this message?')) {
-        // Implementation for deleting message
-        console.log('Delete message:', messageId);
-      }
-    };
-
-    window.replyToMessage = (username) => {
-      messageInput.value = `@${username} `;
-      messageInput.focus();
-    };
-
-    window.reportMessage = async (messageId) => {
-      if (confirm('Report this message as inappropriate?')) {
-        // Implementation for reporting message
-        console.log('Report message:', messageId);
-        alert('Thank you for your report. We will review this message.');
-      }
-    };
-
-    window.openPage = (page) => {
-      window.location.href = page;
-    };
-  </script>
+        
+        // Send message functionality
+        sendButton.addEventListener('click', sendMessage);
+        
+        messageInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+            
+            // Auto-resize textarea
+            setTimeout(() => {
+                messageInput.style.height = 'auto';
+                messageInput.style.height = Math.min(messageInput.scrollHeight, 120) + 'px';
+            }, 0);
+        });
+        
+        function sendMessage() {
+            const text = messageInput.value.trim();
+            if (!text) return;
+            
+            // Create message element
+            const messageEl = createMessageElement({
+                sender: 'You',
+                content: text,
+                isSent: true,
+                time: new Date()
+            });
+            
+            // Add to chat
+            chatContainer.appendChild(messageEl);
+            
+            // Clear input
+            messageInput.value = '';
+            messageInput.style.height = 'auto';
+            
+            // Scroll to bottom
+            scrollToBottom();
+            
+            // Simulate response after a delay (in real app, this would come from Firebase)
+            if (Math.random() > 0.5) {
+                setTimeout(() => {
+                    simulateResponse();
+                }, 1000 + Math.random() * 2000);
+            }
+        }
+        
+        function simulateResponse() {
+            const responses = [
+                "That's interesting!",
+                "I agree with you.",
+                "What do others think about this?",
+                "Thanks for sharing!",
+                "Has anyone else experienced this?"
+            ];
+            
+            const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+            
+            const messageEl = createMessageElement({
+                sender: 'mary_jane',
+                content: randomResponse,
+                isSent: false,
+                time: new Date()
+            });
+            
+            chatContainer.appendChild(messageEl);
+            scrollToBottom();
+            playMessageSound();
+            showNotification(`New message from @mary_jane`);
+        }
+        
+        function createMessageElement({ sender, content, isSent, time }) {
+            const messageEl = document.createElement('div');
+            messageEl.classList.add('message');
+            messageEl.classList.add(isSent ? 'sent' : 'received');
+            
+            // Check for inappropriate content
+            const inappropriateWords = ['fuck', 'shit', 'asshole', 'bitch', 'cunt', 'nigger', 'retard', 'fag', 'hack', 'hacking', 'cheat', 'cheating'];
+            const hasInappropriateContent = inappropriateWords.some(word => 
+                content.toLowerCase().includes(word)
+            );
+            
+            if (hasInappropriateContent) {
+                messageEl.classList.add('violation');
+            }
+            
+            // Format time
+            const formattedTime = formatTime(time);
+            
+            messageEl.innerHTML = `
+                <div class="message-header">
+                    <span class="message-sender">${isSent ? 'You' : '@' + sender}</span>
+                    <span class="message-time">${formattedTime}</span>
+                </div>
+                <div class="message-content">
+                    ${hasInappropriateContent ? '<div class="violation-text">Violation</div>' : ''}
+                    ${content}
+                </div>
+                ${isSent ? '<div class="message-status"><i class="fas fa-check-double"></i> Delivered</div>' : ''}
+            `;
+            
+            return messageEl;
+        }
+        
+        function addSystemMessage(text) {
+            const messageEl = document.createElement('div');
+            messageEl.classList.add('message', 'received');
+            
+            messageEl.innerHTML = `
+                <div class="message-header">
+                    <span class="message-sender">System</span>
+                    <span class="message-time">Now</span>
+                </div>
+                <div class="message-content">
+                    ${text}
+                </div>
+            `;
+            
+            chatContainer.appendChild(messageEl);
+            scrollToBottom();
+        }
+        
+        function formatTime(date) {
+            if (!(date instanceof Date)) date = new Date();
+            
+            const now = new Date();
+            const diff = now - date;
+            
+            if (diff < 60000) return 'Just now';
+            if (diff < 3600000) return `${Math.floor(diff / 60000)} min ago`;
+            
+            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+        
+        function scrollToBottom() {
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+        
+        function playMessageSound() {
+            if (messageSound) {
+                messageSound.currentTime = 0;
+                messageSound.play().catch(e => console.log('Audio play failed:', e));
+            }
+        }
+        
+        function showNotification(text) {
+            if (notification) {
+                notification.textContent = text;
+                notification.classList.add('show');
+                
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                }, 3000);
+            }
+        }
+        
+        // Image upload
+        uploadButton.addEventListener('click', () => {
+            imageUpload.click();
+        });
+        
+        imageUpload.addEventListener('change', async (e) => {
+            if (e.target.files.length > 0) {
+                // In a real app, this would upload to ImgBB API
+                // For this demo, we'll just simulate it
+                const file = e.target.files[0];
+                alert(`Would upload image: ${file.name}\nUsing ImgBB API key: 6d94d15b3d7c33ecc4c1ebdfa5e69a92`);
+                
+                // Simulate successful upload
+                setTimeout(() => {
+                    const messageEl = createMessageElement({
+                        sender: 'You',
+                        content: `📷 Image uploaded successfully`,
+                        isSent: true,
+                        time: new Date()
+                    });
+                    
+                    chatContainer.appendChild(messageEl);
+                    scrollToBottom();
+                }, 1000);
+            }
+        });
+        
+        // Global function to open pages
+        window.openPage = (page) => {
+            alert(`Would navigate to: ${page}`);
+            // In a real app: window.location.href = page;
+        };
+        
+        // Initial scroll to bottom
+        setTimeout(scrollToBottom, 100);
+    </script>
 </body>
 </html>
