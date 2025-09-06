@@ -48,14 +48,6 @@
             gap: 10px;
         }
 
-        .system-indicator {
-            padding: 6px 10px;
-            background: var(--orange);
-            color: #000;
-            font-weight: 700;
-            font-size: 12px;
-        }
-
         .current-system {
             font-size: 14px;
             color: var(--muted);
@@ -271,7 +263,6 @@
 <body>
     <header>
         <div class="system-info">
-            <div class="system-indicator">SYSTEM</div>
             <div class="current-system" id="current-system">In Gasabo > Senior 4</div>
         </div>
         <div class="header-right">
@@ -323,41 +314,6 @@
                     Welcome to Kotweb! This is the public chat for Senior 4 students in Gasabo district.
                 </div>
             </div>
-            
-            <div class="message sent">
-                <div class="message-header">
-                    <span class="message-sender">You</span>
-                    <span class="message-time">Today, 10:32 AM</span>
-                </div>
-                <div class="message-content">
-                    Hello everyone! Glad to be here.
-                </div>
-                <div class="message-actions">
-                    <span class="action-btn">Edit</span>
-                    <span class="action-btn">Delete</span>
-                </div>
-            </div>
-            
-            <div class="message received">
-                <div class="message-header">
-                    <span class="message-sender">Marie</span>
-                    <span class="message-time">Today, 10:35 AM</span>
-                </div>
-                <div class="message-content">
-                    Does anyone have notes from yesterday's math class?
-                </div>
-            </div>
-            
-            <div class="message received">
-                <div class="message-header">
-                    <span class="message-sender">Jean</span>
-                    <span class="message-time">Today, 10:40 AM</span>
-                </div>
-                <div class="message-content violation">
-                    <span class="violation-text">Violation</span>
-                    This message contains inappropriate content and has been hidden.
-                </div>
-            </div>
         </div>
     </main>
 
@@ -389,10 +345,9 @@
     <script type="module">
         // Import Firebase modules
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
-        import { getMessaging, onMessage } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging.js";
 
         // Firebase configuration
         const firebaseConfig = {
@@ -411,7 +366,6 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
         const storage = getStorage(app);
-        // const messaging = getMessaging(app);
 
         // DOM elements
         const chatContainer = document.getElementById('chat-container');
@@ -422,15 +376,17 @@
         const currentSystem = document.getElementById('current-system');
         const notification = document.getElementById('notification');
         const messageSound = document.getElementById('message-sound');
+        const menuBtn = document.getElementById('menu-btn');
 
         // User data and current chat info
         let userData = null;
         let currentChatPath = null;
+        let unsubscribeMessages = null;
 
         // Inappropriate words filter
         const inappropriateWords = ['fuck', 'shit', 'asshole', 'bitch', 'cunt', 'nigger', 'retard', 'hacking', 'hack', 'cheat', 'crack'];
 
-        // Check if user is logged in
+        // Check if user is authenticated
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 // User is signed in
@@ -465,21 +421,29 @@
             // Set the chat path: Rwanda > Class > District
             currentChatPath = `Rwanda/${studentClass}/${district}`;
             
+            // Clear existing messages
+            chatContainer.innerHTML = '';
+            
             // Load existing messages
             loadMessages();
         }
 
         // Load messages from Firestore
         function loadMessages() {
+            // Unsubscribe from previous listener if exists
+            if (unsubscribeMessages) {
+                unsubscribeMessages();
+            }
+            
             const messagesRef = collection(db, currentChatPath);
             const q = query(messagesRef, orderBy('timestamp', 'asc'));
             
-            onSnapshot(q, (snapshot) => {
+            unsubscribeMessages = onSnapshot(q, (snapshot) => {
                 snapshot.docChanges().forEach((change) => {
                     if (change.type === 'added') {
                         const message = change.doc.data();
                         addMessageToChat(
-                            message.id,
+                            change.doc.id,
                             message.senderId,
                             message.senderName,
                             message.text,
@@ -493,11 +457,20 @@
                             playMessageSound();
                             showNotification(`New message from ${message.senderName}`);
                         }
+                    } else if (change.type === 'modified') {
+                        // Update edited message
+                        const message = change.doc.data();
+                        updateMessageInChat(change.doc.id, message.text);
+                    } else if (change.type === 'removed') {
+                        // Remove deleted message
+                        removeMessageFromChat(change.doc.id);
                     }
                 });
                 
                 // Scroll to bottom
                 chatContainer.scrollTop = chatContainer.scrollHeight;
+            }, (error) => {
+                console.error("Error loading messages:", error);
             });
         }
 
@@ -538,8 +511,37 @@
             chatContainer.scrollTop = chatContainer.scrollHeight;
         }
 
+        // Update message in chat UI
+        function updateMessageInChat(messageId, newText) {
+            const messageEl = chatContainer.querySelector(`[data-id="${messageId}"]`);
+            if (messageEl) {
+                const contentEl = messageEl.querySelector('.message-content');
+                const hasInappropriateContent = checkForInappropriateContent(newText);
+                
+                contentEl.innerHTML = `
+                    ${hasInappropriateContent ? '<span class="violation-text">Violation</span>' : ''}
+                    ${newText}
+                `;
+                
+                if (hasInappropriateContent) {
+                    contentEl.classList.add('violation');
+                } else {
+                    contentEl.classList.remove('violation');
+                }
+            }
+        }
+
+        // Remove message from chat UI
+        function removeMessageFromChat(messageId) {
+            const messageEl = chatContainer.querySelector(`[data-id="${messageId}"]`);
+            if (messageEl) {
+                messageEl.remove();
+            }
+        }
+
         // Check for inappropriate content
         function checkForInappropriateContent(text) {
+            if (!text) return false;
             const lowerText = text.toLowerCase();
             return inappropriateWords.some(word => lowerText.includes(word));
         }
@@ -603,16 +605,22 @@
 
         // Edit message
         async function editMessage(messageId) {
-            const newText = prompt("Edit your message:", "");
-            if (newText !== null) {
-                try {
-                    const messageRef = doc(db, currentChatPath, messageId);
-                    await updateDoc(messageRef, {
-                        text: newText,
-                        edited: true
-                    });
-                } catch (error) {
-                    console.error("Error editing message:", error);
+            const messageRef = doc(db, currentChatPath, messageId);
+            const messageDoc = await getDoc(messageRef);
+            
+            if (messageDoc.exists()) {
+                const messageData = messageDoc.data();
+                const newText = prompt("Edit your message:", messageData.text);
+                
+                if (newText !== null) {
+                    try {
+                        await updateDoc(messageRef, {
+                            text: newText,
+                            edited: true
+                        });
+                    } catch (error) {
+                        console.error("Error editing message:", error);
+                    }
                 }
             }
         }
@@ -631,10 +639,12 @@
 
         // Play message sound
         function playMessageSound() {
-            messageSound.currentTime = 0;
-            messageSound.play().catch(error => {
-                console.log("Audio play failed:", error);
-            });
+            if (messageSound) {
+                messageSound.currentTime = 0;
+                messageSound.play().catch(error => {
+                    console.log("Audio play failed:", error);
+                });
+            }
         }
 
         // Show notification
@@ -682,6 +692,11 @@
             input.click();
         });
 
+        // Menu button click - show system info
+        menuBtn.addEventListener('click', function() {
+            alert(`You are currently in:\nDistrict: ${userData.district}\nClass: ${userData.class}\nSchool: ${userData.school}`);
+        });
+
         // Open other pages
         window.openPage = function(page) {
             window.location.href = page;
@@ -691,14 +706,6 @@
         window.editMessage = editMessage;
         window.deleteMessage = deleteMessage;
 
-        // Listen for push notifications (requires proper setup)
-        /*
-        onMessage(messaging, (payload) => {
-            console.log('Message received', payload);
-            playMessageSound();
-            showNotification(payload.notification.title);
-        });
-        */
     </script>
 </body>
 </html>
