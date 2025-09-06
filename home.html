@@ -845,18 +845,19 @@
             }
             
             // Determine collection path based on current level
-            let collectionPath;
+            let collectionRef;
             if (currentLevel === 'country') {
-                collectionPath = `rwanda/${currentUserData.class.toLowerCase().replace(' ', '')}/messages`;
+                // Country level: rwanda -> class -> messages
+                collectionRef = collection(db, "rwanda", currentUserData.class.replace(' ', ''), "messages");
             } else {
-                // District level
-                collectionPath = `districts/${currentUserData.district.toLowerCase()}/${currentUserData.class.toLowerCase().replace(' ', '')}/messages`;
+                // District level: class -> district -> messages
+                collectionRef = collection(db, currentUserData.class.replace(' ', ''), currentUserData.district, "messages");
             }
             
             try {
                 // Set up real-time listener for messages
                 const q = query(
-                    collection(db, collectionPath),
+                    collectionRef,
                     orderBy('timestamp', 'asc')
                 );
                 
@@ -1020,12 +1021,13 @@
                 }
                 
                 // Determine collection path based on current level
-                let collectionPath;
+                let collectionRef;
                 if (currentLevel === 'country') {
-                    collectionPath = `rwanda/${currentUserData.class.toLowerCase().replace(' ', '')}/messages`;
+                    // Country level: rwanda -> class -> messages
+                    collectionRef = collection(db, "rwanda", currentUserData.class.replace(' ', ''), "messages");
                 } else {
-                    // District level
-                    collectionPath = `districts/${currentUserData.district.toLowerCase()}/${currentUserData.class.toLowerCase().replace(' ', '')}/messages`;
+                    // District level: class -> district -> messages
+                    collectionRef = collection(db, currentUserData.class.replace(' ', ''), currentUserData.district, "messages");
                 }
                 
                 // Prepare message data
@@ -1046,7 +1048,7 @@
                 }
                 
                 // Add message to Firestore
-                await addDoc(collection(db, collectionPath), messageData);
+                await addDoc(collectionRef, messageData);
                 
                 // Clear input and reset UI
                 messageInput.value = '';
@@ -1165,16 +1167,17 @@
             
             try {
                 // Determine collection path based on current level
-                let collectionPath;
+                let collectionRef;
                 if (currentLevel === 'country') {
-                    collectionPath = `rwanda/${currentUserData.class.toLowerCase().replace(' ', '')}/messages`;
+                    // Country level: rwanda -> class -> messages
+                    collectionRef = doc(db, "rwanda", currentUserData.class.replace(' ', ''), "messages", messageId);
                 } else {
-                    // District level
-                    collectionPath = `districts/${currentUserData.district.toLowerCase()}/${currentUserData.class.toLowerCase().replace(' ', '')}/messages`;
+                    // District level: class -> district -> messages
+                    collectionRef = doc(db, currentUserData.class.replace(' ', ''), currentUserData.district, "messages", messageId);
                 }
                 
                 // Delete message from Firestore
-                await deleteDoc(doc(db, collectionPath, messageId));
+                await deleteDoc(collectionRef);
                 
                 showNotification('Message deleted');
             } catch (error) {
