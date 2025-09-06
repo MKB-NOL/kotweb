@@ -47,12 +47,12 @@
 
     form .row{display:flex;gap:10px;margin-bottom:12px}
     label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}
-    input[type=text],input[type=password],input[type=tel],select,textarea{width:100%;padding:10px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.02);color:var(--white);outline:none}
+    input[type=text],input[type=password],input[type=tel],select,textarea{width:100%;padding:12px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.02);color:var(--white);outline:none;font-size:16px} /* Increased font size for mobile */
     input:focus{border-color:var(--orange)}
     .muted{font-size:12px;color:var(--muted)}
 
     /* buttons */
-    .btn{display:inline-block;padding:10px 14px;background:var(--orange);color:#000;border:none;cursor:pointer;font-weight:700}
+    .btn{display:inline-block;padding:12px 16px;background:var(--orange);color:#000;border:none;cursor:pointer;font-weight:700;font-size:16px} /* Increased size for mobile */
     .btn.ghost{background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--white)}
 
     /* error */
@@ -76,12 +76,6 @@
     /* login form layout */
     .login-box{max-width:420px}
 
-    /* responsive */
-    @media (max-width:900px){
-      .shell{grid-template-columns:1fr;padding:0}
-      .brand-col{display:none}
-    }
-    
     /* Loading spinner */
     .spinner {
       width: 20px;
@@ -95,6 +89,45 @@
     @keyframes spin {
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
+    }
+    
+    /* Form improvements for mobile */
+    .form-input-group {
+      margin-bottom: 16px;
+    }
+    
+    /* Responsive */
+    @media (max-width:900px){
+      .shell{grid-template-columns:1fr;padding:0}
+      .brand-col{display:none}
+      body{padding:12px;align-items:flex-start;padding-top:24px}
+      .form-col{padding:16px}
+      .card{padding:8px}
+      
+      /* Increase form element sizes on mobile */
+      input[type=text],input[type=password],input[type=tel],select,textarea {
+        padding: 14px;
+        font-size: 16px; /* Prevents zoom on iOS */
+      }
+      
+      .btn {
+        padding: 14px 18px;
+      }
+      
+      .form-input-group {
+        margin-bottom: 20px;
+      }
+    }
+    
+    /* Prevent zoom on iOS */
+    @media screen and (max-width: 900px) {
+      input[type="text"], 
+      input[type="password"], 
+      input[type="tel"],
+      select, 
+      textarea {
+        font-size: 16px !important;
+      }
     }
   </style>
 </head>
@@ -128,33 +161,31 @@
           <form id="signupForm" novalidate>
             <!-- SECTION 1 -->
             <div class="signup-section" data-section="1">
-              <div class="row">
-                <div style="flex:1">
-                  <label>Phone number <span class="muted">(Rwanda only)</span></label>
-                  <input type="tel" id="su-phone" placeholder="e.g. +250788123456 or 0788123456" required />
-                  <div id="phone-note" class="small muted">Only Rwandan phone numbers allowed (starts with +2507 or 07).</div>
-                  <div id="phone-error" class="error" style="display:none"></div>
-                </div>
+              <div class="form-input-group">
+                <label>Phone number <span class="muted">(Rwanda only)</span></label>
+                <input type="tel" id="su-phone" placeholder="e.g. +250788123456 or 0788123456" required />
+                <div id="phone-note" class="small muted">Only Rwandan phone numbers allowed (starts with +2507 or 07).</div>
+                <div id="phone-error" class="error" style="display:none"></div>
               </div>
 
               <div class="row">
-                <div style="flex:1">
+                <div style="flex:1" class="form-input-group">
                   <label>First name</label>
                   <input type="text" id="su-first" placeholder="First name" required />
                 </div>
-                <div style="flex:1">
+                <div style="flex:1" class="form-input-group">
                   <label>Last name</label>
                   <input type="text" id="su-last" placeholder="Last name" required />
                 </div>
               </div>
 
               <div class="row">
-                <div style="flex:1">
+                <div style="flex:1" class="form-input-group">
                   <label>Username</label>
                   <input type="text" id="su-username" placeholder="username (no spaces)" required />
                   <div id="username-err" class="error" style="display:none"></div>
                 </div>
-                <div style="width:180px">
+                <div style="width:180px" class="form-input-group">
                   <label>Password</label>
                   <input type="password" id="su-password" placeholder="Password" required />
                   <div class="small muted">Minimum 6 characters</div>
@@ -169,7 +200,7 @@
 
             <!-- SECTION 2 -->
             <div class="signup-section" data-section="2" style="display:none">
-              <div>
+              <div class="form-input-group">
                 <label>Where do you study?</label>
                 <div class="dropdown">
                   <input id="district-search" type="text" placeholder="Search district (Nyarugenge, Kicukiro, Gasabo)" autocomplete="off" />
@@ -182,7 +213,7 @@
                 <div id="district-selected" class="small muted" style="margin-top:8px">Selected: <span id="district-val">—</span></div>
               </div>
 
-              <div style="margin-top:12px">
+              <div class="form-input-group">
                 <label>School name</label>
                 <input type="text" id="school-name" placeholder="Your school name" required />
               </div>
@@ -195,7 +226,7 @@
 
             <!-- SECTION 3 -->
             <div class="signup-section" data-section="3" style="display:none">
-              <div>
+              <div class="form-input-group">
                 <label>Agreement</label>
                 <div style="background:rgba(255,255,255,0.02);padding:12px;border:1px solid rgba(255,255,255,0.04)">
                   <p class="small">Do you confirm all the given information are all true, because in fact it may have effects in your experience.</p>
@@ -223,11 +254,13 @@
           <p class="lead">Use your phone number and password.</p>
 
           <div class="login-box">
-            <label>Phone number</label>
-            <input type="tel" id="login-phone" placeholder="+250788123456 or 0788123456" />
-            <div id="login-phone-err" class="error" style="display:none"></div>
+            <div class="form-input-group">
+              <label>Phone number</label>
+              <input type="tel" id="login-phone" placeholder="+250788123456 or 0788123456" />
+              <div id="login-phone-err" class="error" style="display:none"></div>
+            </div>
 
-            <div style="margin-top:10px">
+            <div class="form-input-group">
               <label>Password</label>
               <input type="password" id="login-pass" placeholder="Password" />
               <div id="login-pass-err" class="error" style="display:none"></div>
@@ -252,7 +285,7 @@
   <script type="module">
     // Import Firebase modules
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
     import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
     // Firebase configuration
@@ -272,6 +305,14 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
+    // Check if user is already logged in
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        // User is signed in, redirect to home page
+        window.location.href = "home.html";
+      }
+    });
+
     // Helper: validate Rwandan phone number formats: +2507XXXXXXXX or 07XXXXXXXX
     function isRwandaPhone(v) {
       if (!v) return false;
@@ -288,6 +329,29 @@
       }
       return normalized + '@kotweb.rw';
     }
+
+    // Save user data to local storage
+    function saveUserToLocalStorage(userData) {
+      localStorage.setItem('kotweb_user', JSON.stringify(userData));
+      localStorage.setItem('kotweb_auth_timestamp', new Date().getTime());
+    }
+
+    // Check if user is already logged in (prevent multiple logins)
+    function checkExistingSession() {
+      const userData = localStorage.getItem('kotweb_user');
+      const authTimestamp = localStorage.getItem('kotweb_auth_timestamp');
+      
+      if (userData && authTimestamp) {
+        // Check if session is recent (within last 5 minutes)
+        const now = new Date().getTime();
+        if (now - parseInt(authTimestamp) < 5 * 60 * 1000) {
+          window.location.href = "home.html";
+        }
+      }
+    }
+
+    // Call this on page load
+    checkExistingSession();
 
     // Signup step logic
     const steps = Array.from(document.querySelectorAll('.signup-section'));
@@ -384,6 +448,12 @@
       }
       document.getElementById('agree-err').style.display = 'none';
 
+      // Show loading state
+      const submitBtn = document.getElementById('s3-submit');
+      const originalText = submitBtn.textContent;
+      submitBtn.innerHTML = '<div class="spinner"></div>';
+      submitBtn.disabled = true;
+
       // Collect all form values
       const phone = document.getElementById('su-phone').value.trim().replace(/\s+/g, '');
       const first = document.getElementById('su-first').value.trim();
@@ -415,11 +485,26 @@
           createdAt: new Date()
         });
 
+        // Save user data to local storage
+        saveUserToLocalStorage({
+          uid: user.uid,
+          firstName: first,
+          lastName: last,
+          username: username,
+          phone: phone,
+          district: district,
+          school: school
+        });
+
         // Redirect to home page
         window.location.href = "home.html";
       } catch (error) {
         console.error("Error creating user:", error);
         alert("Signup failed: " + error.message);
+        
+        // Restore button state
+        submitBtn.textContent = originalText;
+        submitBtn.disabled = false;
       }
     });
 
@@ -443,21 +528,45 @@
       }
       document.getElementById('login-pass-err').style.display = 'none';
       
-      // Show loading spinner
-      document.getElementById('login-spinner').style.display = 'inline-block';
+      // Show loading state
+      const loginBtn = document.getElementById('login-btn');
+      const originalText = loginBtn.textContent;
+      loginBtn.innerHTML = '<div class="spinner"></div>';
+      loginBtn.disabled = true;
       document.getElementById('login-msg').textContent = '';
       
       try {
         const email = phoneToEmail(phone);
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+        
+        // Get additional user data from Firestore
+        const userDoc = await getDoc(doc(db, "users", user.uid));
+        
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+          
+          // Save user data to local storage
+          saveUserToLocalStorage({
+            uid: user.uid,
+            firstName: userData.firstName,
+            lastName: userData.lastName,
+            username: userData.username,
+            phone: userData.phone,
+            district: userData.district,
+            school: userData.school
+          });
+        }
         
         // Login successful, redirect to home
         window.location.href = "home.html";
       } catch (error) {
         console.error("Login error:", error);
         document.getElementById('login-msg').textContent = "Login failed: " + error.message;
-      } finally {
-        document.getElementById('login-spinner').style.display = 'none';
+        
+        // Restore button state
+        loginBtn.textContent = originalText;
+        loginBtn.disabled = false;
       }
     });
 
