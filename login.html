@@ -47,12 +47,12 @@
 
     form .row{display:flex;gap:10px;margin-bottom:12px}
     label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}
-    input[type=text],input[type=password],input[type=tel],select,textarea{width:100%;padding:12px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.02);color:var(--white);outline:none;font-size:16px}
+    input[type=text],input[type=password],input[type=tel],select,textarea{width:100%;padding:12px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.02);color:var(--white);outline:none;font-size:16px} /* Increased font size for mobile */
     input:focus{border-color:var(--orange)}
     .muted{font-size:12px;color:var(--muted)}
 
     /* buttons */
-    .btn{display:inline-block;padding:12px 16px;background:var(--orange);color:#000;border:none;cursor:pointer;font-weight:700;font-size:16px}
+    .btn{display:inline-block;padding:12px 16px;background:var(--orange);color:#000;border:none;cursor:pointer;font-weight:700;font-size:16px} /* Increased size for mobile */
     .btn.ghost{background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--white)}
 
     /* error */
@@ -61,6 +61,7 @@
     /* arrows */
     .nav-arrows{display:flex;justify-content:space-between;margin-top:10px}
     .arrow{width:36px;height:36px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;border:1px solid rgba(255,255,255,0.06)}
+    /* CSS triangle for arrow icon (no border-radius) */
     .arrow svg{display:block}
 
     /* district searchable dropdown */
@@ -104,9 +105,10 @@
       .form-col{padding:16px}
       .card{padding:8px}
       
+      /* Increase form element sizes on mobile */
       input[type=text],input[type=password],input[type=tel],select,textarea {
         padding: 14px;
-        font-size: 16px;
+        font-size: 16px; /* Prevents zoom on iOS */
       }
       
       .btn {
@@ -118,6 +120,7 @@
       }
     }
     
+    /* Prevent zoom on iOS */
     @media screen and (max-width: 900px) {
       input[type="text"], 
       input[type="password"], 
@@ -295,6 +298,7 @@
     </div>
   </div>
 
+  <!-- Firebase scripts -->
   <script type="module">
     // Import Firebase modules
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -340,30 +344,25 @@
       if (/^07/.test(normalized)) {
         normalized = '+250' + normalized.slice(1);
       }
-      return normalized + '@gmail.com';
+      return normalized + '@kotweb.rw';
     }
 
-    // Set HTTP-only cookie with JWT token
-    function setAuthCookie(token, days = 7) {
-      const d = new Date();
-      d.setTime(d.getTime() + (days * 24 * 60 * 60 * 1000));
-      const expires = "expires=" + d.toUTCString();
-      document.cookie = `kotweb_token=${token};${expires};path=/;Secure;SameSite=Strict`;
+    // Save user data to local storage
+    function saveUserToLocalStorage(userData) {
+      localStorage.setItem('kotweb_user', JSON.stringify(userData));
+      localStorage.setItem('kotweb_auth_timestamp', new Date().getTime());
     }
 
     // Check if user is already logged in (prevent multiple logins)
     function checkExistingSession() {
-      const cookies = document.cookie.split(';');
-      const tokenCookie = cookies.find(cookie => cookie.trim().startsWith('kotweb_token='));
+      const userData = localStorage.getItem('kotweb_user');
+      const authTimestamp = localStorage.getItem('kotweb_auth_timestamp');
       
-      if (tokenCookie) {
+      if (userData && authTimestamp) {
         // Check if session is recent (within last 5 minutes)
-        const authTimestamp = sessionStorage.getItem('kotweb_auth_timestamp');
-        if (authTimestamp) {
-          const now = new Date().getTime();
-          if (now - parseInt(authTimestamp) < 5 * 60 * 1000) {
-            window.location.href = "home.html";
-          }
+        const now = new Date().getTime();
+        if (now - parseInt(authTimestamp) < 5 * 60 * 1000) {
+          window.location.href = "home.html";
         }
       }
     }
@@ -511,40 +510,23 @@
           createdAt: new Date()
         });
 
-        // Generate a simple JWT-like token (in a real app, this would come from your backend)
-        const token = btoa(JSON.stringify({
+        // Save user data to local storage
+        saveUserToLocalStorage({
           uid: user.uid,
+          firstName: first,
+          lastName: last,
           username: username,
-          email: email,
-          exp: Date.now() + (7 * 24 * 60 * 60 * 1000) // 7 days from now
-        }));
-        
-        // Set HTTP-only cookie with the token
-        setAuthCookie(token);
-        
-        // Store minimal user data in sessionStorage (non-sensitive)
-        sessionStorage.setItem('kotweb_user', JSON.stringify({
-          username: username,
+          phone: phone,
           district: district,
-          class: studentClass,
-          school: school
-        }));
-        
-        sessionStorage.setItem('kotweb_auth_timestamp', Date.now().toString());
+          school: school,
+          class: studentClass
+        });
 
         // Redirect to home page
         window.location.href = "home.html";
       } catch (error) {
         console.error("Error creating user:", error);
-        let errorMessage = "Signup failed. Please try again.";
-        
-        if (error.code === 'auth/email-already-in-use') {
-          errorMessage = "This phone number is already registered. Please login instead.";
-        } else if (error.code === 'auth/weak-password') {
-          errorMessage = "Password is too weak. Please use a stronger password.";
-        }
-        
-        alert(errorMessage);
+        alert("Signup failed: " + error.message);
         
         // Restore button state
         submitBtn.textContent = originalText;
@@ -590,41 +572,24 @@
         if (userDoc.exists()) {
           const userData = userDoc.data();
           
-          // Generate a simple JWT-like token (in a real app, this would come from your backend)
-          const token = btoa(JSON.stringify({
+          // Save user data to local storage
+          saveUserToLocalStorage({
             uid: user.uid,
+            firstName: userData.firstName,
+            lastName: userData.lastName,
             username: userData.username,
-            email: email,
-            exp: Date.now() + (7 * 24 * 60 * 60 * 1000) // 7 days from now
-          }));
-          
-          // Set HTTP-only cookie with the token
-          setAuthCookie(token);
-          
-          // Store minimal user data in sessionStorage (non-sensitive)
-          sessionStorage.setItem('kotweb_user', JSON.stringify({
-            username: userData.username,
+            phone: userData.phone,
             district: userData.district,
-            class: userData.class,
-            school: userData.school
-          }));
-          
-          sessionStorage.setItem('kotweb_auth_timestamp', Date.now().toString());
+            school: userData.school,
+            class: userData.class
+          });
         }
         
         // Login successful, redirect to home
         window.location.href = "home.html";
       } catch (error) {
         console.error("Login error:", error);
-        let errorMessage = "Login failed. Please check your credentials.";
-        
-        if (error.code === 'auth/user-not-found') {
-          errorMessage = "No account found with this phone number. Please sign up first.";
-        } else if (error.code === 'auth/wrong-password') {
-          errorMessage = "Incorrect password. Please try again.";
-        }
-        
-        document.getElementById('login-msg').textContent = errorMessage;
+        document.getElementById('login-msg').textContent = "Login failed: " + error.message;
         
         // Restore button state
         loginBtn.textContent = originalText;
@@ -646,40 +611,31 @@
 
     // Function to setup dropdown behavior
     function setupDropdown(searchInput, listElement, valueElement, items) {
-      // Add initial items to dropdown
-      updateDropdownList(items, listElement, valueElement, searchInput);
-      
       searchInput.addEventListener('focus', () => {
         listElement.style.display = 'block';
-        updateDropdownList(items, listElement, valueElement, searchInput);
       });
       
       searchInput.addEventListener('input', () => {
         const q = searchInput.value.toLowerCase();
-        const filteredItems = items.filter(d => d.toLowerCase().includes(q));
-        updateDropdownList(filteredItems, listElement, valueElement, searchInput);
-      });
-    }
-
-    // Helper function to update dropdown list
-    function updateDropdownList(items, listElement, valueElement, searchInput) {
-      listElement.innerHTML = '';
-      
-      items.forEach(d => {
-        const el = document.createElement('div');
-        el.className = 'dropdown-item';
-        el.textContent = d;
-        el.addEventListener('click', () => {
-          valueElement.textContent = d;
-          searchInput.value = d;
-          listElement.style.display = 'none';
+        listElement.style.display = 'block';
+        listElement.innerHTML = '';
+        
+        items.filter(d => d.toLowerCase().includes(q)).forEach(d => {
+          const el = document.createElement('div');
+          el.className = 'dropdown-item';
+          el.textContent = d;
+          el.addEventListener('click', () => {
+            valueElement.textContent = d;
+            searchInput.value = d;
+            listElement.style.display = 'none';
+          });
+          listElement.appendChild(el);
         });
-        listElement.appendChild(el);
+        
+        if (listElement.innerHTML === '') {
+          listElement.innerHTML = '<div class="dropdown-item">No results</div>';
+        }
       });
-      
-      if (listElement.innerHTML === '') {
-        listElement.innerHTML = '<div class="dropdown-item">No results</div>';
-      }
     }
 
     // Setup both dropdowns
@@ -720,9 +676,9 @@
       if (!username) return;
       
       try {
-        // Check if username contains inappropriate words
-        const inappropriateWords = ['admin', 'test', 'system', 'moderator'];
-        if (inappropriateWords.some(word => username.toLowerCase().includes(word))) {
+        // In a real app, you would check against a dedicated usernames collection
+        // For this example, we'll just check if it contains "admin" or "test"
+        if (username.toLowerCase().includes('admin') || username.toLowerCase().includes('test')) {
           const ue = document.getElementById('username-err');
           ue.style.display = 'block';
           ue.textContent = 'This username is not available.';
