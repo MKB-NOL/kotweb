@@ -1,0 +1,543 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Kotweb — Login / Sign up</title>
+  <style>
+    :root{
+      --bg: #000000;
+      --orange: #ff7a00;
+      --white: #ffffff;
+      --muted: #bfbfbf;
+      --error: #ff3333;
+      --glass: rgba(255,255,255,0.03);
+      font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    }
+
+    /* No rounded corners anywhere */
+    *{box-sizing:border-box;border-radius:0 !important}
+    html,body{height:100%;margin:0}
+    body{background:var(--bg);color:var(--white);display:flex;align-items:center;justify-content:center;padding:24px}
+
+    .shell{width:100%;max-width:1080px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border:1px solid rgba(255,255,255,0.04);display:grid;grid-template-columns:420px 1fr;overflow:hidden}
+
+    /* Left column - brand & intro */
+    .brand-col{padding:28px 26px;background:linear-gradient(180deg, rgba(0,0,0,0.6), rgba(0,0,0,0.4));border-right:1px solid rgba(255,255,255,0.03)}
+    .logo{font-weight:700;font-size:28px;color:var(--orange);letter-spacing:0.6px}
+    .tag{margin-top:6px;color:var(--muted);font-size:13px}
+    .hero{margin-top:26px;font-size:14px;line-height:1.45;color:var(--muted)}
+
+    /* Right column - forms */
+    .form-col{padding:22px}
+    .tabs{display:flex;gap:8px;margin-bottom:18px}
+    .tab{flex:1;padding:10px 12px;border:1px solid rgba(255,255,255,0.06);text-align:center;cursor:pointer}
+    .tab.active{background:var(--orange);color:#000;font-weight:700}
+
+    .card{background:transparent;padding:12px}
+
+    h2{margin:0 0 10px 0;color:var(--white);font-size:20px}
+    p.lead{margin:0 0 14px 0;color:var(--muted);font-size:13px}
+
+    /* Stepper (pointing signs for next/prev) */
+    .stepper{display:flex;gap:8px;align-items:center;margin:10px 0 18px 0}
+    .step{width:38px;height:38px;border:1px solid rgba(255,255,255,0.06);display:flex;align-items:center;justify-content:center;font-weight:700}
+    .step.active{background:var(--orange);color:#000}
+    .step-label{font-size:12px;color:var(--muted);margin-left:8px}
+
+    form .row{display:flex;gap:10px;margin-bottom:12px}
+    label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}
+    input[type=text],input[type=password],input[type=tel],select,textarea{width:100%;padding:10px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.02);color:var(--white);outline:none}
+    input:focus{border-color:var(--orange)}
+    .muted{font-size:12px;color:var(--muted)}
+
+    /* buttons */
+    .btn{display:inline-block;padding:10px 14px;background:var(--orange);color:#000;border:none;cursor:pointer;font-weight:700}
+    .btn.ghost{background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--white)}
+
+    /* error */
+    .error{color:var(--error);font-size:12px;margin-top:6px}
+
+    /* arrows */
+    .nav-arrows{display:flex;justify-content:space-between;margin-top:10px}
+    .arrow{width:36px;height:36px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;border:1px solid rgba(255,255,255,0.06)}
+    /* CSS triangle for arrow icon (no border-radius) */
+    .arrow svg{display:block}
+
+    /* district searchable dropdown */
+    .dropdown{position:relative}
+    .dropdown-list{position:absolute;left:0;right:0;top:52px;max-height:160px;overflow:auto;border:1px solid rgba(255,255,255,0.06);background:var(--glass);z-index:40}
+    .dropdown-item{padding:8px 10px;cursor:pointer}
+    .dropdown-item:hover{background:rgba(255,255,255,0.02)}
+
+    /* small helper */
+    .small{font-size:12px;color:var(--muted)}
+
+    /* login form layout */
+    .login-box{max-width:420px}
+
+    /* responsive */
+    @media (max-width:900px){
+      .shell{grid-template-columns:1fr;padding:0}
+      .brand-col{display:none}
+    }
+    
+    /* Loading spinner */
+    .spinner {
+      width: 20px;
+      height: 20px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top: 2px solid var(--orange);
+      display: inline-block;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <div class="brand-col">
+      <div class="logo">KOTWEB</div>
+      <div class="tag">Where students share knowledge & connect</div>
+      <div class="hero">Join our community of Rwandan students to share notes, ask questions, and connect with peers from your district.</div>
+    </div>
+
+    <div class="form-col">
+      <div class="tabs">
+        <div class="tab active" id="tab-signup">Sign up</div>
+        <div class="tab" id="tab-login">Login</div>
+      </div>
+
+      <div class="card">
+        <!-- SIGNUP FORM (multi-step) -->
+        <div id="signup-area">
+          <h2>Create your Kotweb account</h2>
+          <p class="lead">Sign up with your phone number (Rwanda only).</p>
+
+          <div class="stepper" id="signup-stepper">
+            <div class="step active" data-step="1">1</div>
+            <div class="step" data-step="2">2</div>
+            <div class="step" data-step="3">3</div>
+            <div class="step-label">Section <span id="cur-step">1</span> of 3</div>
+          </div>
+
+          <form id="signupForm" novalidate>
+            <!-- SECTION 1 -->
+            <div class="signup-section" data-section="1">
+              <div class="row">
+                <div style="flex:1">
+                  <label>Phone number <span class="muted">(Rwanda only)</span></label>
+                  <input type="tel" id="su-phone" placeholder="e.g. +250788123456 or 0788123456" required />
+                  <div id="phone-note" class="small muted">Only Rwandan phone numbers allowed (starts with +2507 or 07).</div>
+                  <div id="phone-error" class="error" style="display:none"></div>
+                </div>
+              </div>
+
+              <div class="row">
+                <div style="flex:1">
+                  <label>First name</label>
+                  <input type="text" id="su-first" placeholder="First name" required />
+                </div>
+                <div style="flex:1">
+                  <label>Last name</label>
+                  <input type="text" id="su-last" placeholder="Last name" required />
+                </div>
+              </div>
+
+              <div class="row">
+                <div style="flex:1">
+                  <label>Username</label>
+                  <input type="text" id="su-username" placeholder="username (no spaces)" required />
+                  <div id="username-err" class="error" style="display:none"></div>
+                </div>
+                <div style="width:180px">
+                  <label>Password</label>
+                  <input type="password" id="su-password" placeholder="Password" required />
+                  <div class="small muted">Minimum 6 characters</div>
+                </div>
+              </div>
+
+              <div class="nav-arrows">
+                <div class="arrow ghost" id="s1-prev" style="visibility:hidden"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="square" stroke-linejoin="miter"/></svg></div>
+                <div style="text-align:right"><button type="button" class="btn" id="s1-next">Next</button></div>
+              </div>
+            </div>
+
+            <!-- SECTION 2 -->
+            <div class="signup-section" data-section="2" style="display:none">
+              <div>
+                <label>Where do you study?</label>
+                <div class="dropdown">
+                  <input id="district-search" type="text" placeholder="Search district (Nyarugenge, Kicukiro, Gasabo)" autocomplete="off" />
+                  <div class="dropdown-list" id="district-list" style="display:none">
+                    <div class="dropdown-item">Nyarugenge</div>
+                    <div class="dropdown-item">Kicukiro</div>
+                    <div class="dropdown-item">Gasabo</div>
+                  </div>
+                </div>
+                <div id="district-selected" class="small muted" style="margin-top:8px">Selected: <span id="district-val">—</span></div>
+              </div>
+
+              <div style="margin-top:12px">
+                <label>School name</label>
+                <input type="text" id="school-name" placeholder="Your school name" required />
+              </div>
+
+              <div class="nav-arrows">
+                <div class="arrow" id="s2-prev"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="square" stroke-linejoin="miter"/></svg></div>
+                <div><button type="button" class="btn" id="s2-next">Next</button></div>
+              </div>
+            </div>
+
+            <!-- SECTION 3 -->
+            <div class="signup-section" data-section="3" style="display:none">
+              <div>
+                <label>Agreement</label>
+                <div style="background:rgba(255,255,255,0.02);padding:12px;border:1px solid rgba(255,255,255,0.04)">
+                  <p class="small">Do you confirm all the given information are all true, because in fact it may have effects in your experience.</p>
+                </div>
+
+                <div style="margin-top:12px">
+                  <label><input type="checkbox" id="agree" /> I confirm all information is true</label>
+                  <div id="agree-err" class="error" style="display:none"></div>
+                </div>
+
+                <div class="nav-arrows">
+                  <div class="arrow" id="s3-prev"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="square" stroke-linejoin="miter"/></svg></div>
+                  <div><button type="button" class="btn" id="s3-submit">Continue & Confirm</button></div>
+                </div>
+              </div>
+            </div>
+          </form>
+
+          <div style="margin-top:18px" class="small muted">Already have an account? <a href="#" id="goto-login" style="color:var(--orange);text-decoration:none">Login</a></div>
+        </div>
+
+        <!-- LOGIN FORM -->
+        <div id="login-area" style="display:none">
+          <h2>Login to Kotweb</h2>
+          <p class="lead">Use your phone number and password.</p>
+
+          <div class="login-box">
+            <label>Phone number</label>
+            <input type="tel" id="login-phone" placeholder="+250788123456 or 0788123456" />
+            <div id="login-phone-err" class="error" style="display:none"></div>
+
+            <div style="margin-top:10px">
+              <label>Password</label>
+              <input type="password" id="login-pass" placeholder="Password" />
+              <div id="login-pass-err" class="error" style="display:none"></div>
+            </div>
+
+            <div style="margin-top:12px;display:flex;gap:8px;align-items:center">
+              <button class="btn" id="login-btn">Login</button>
+              <div id="login-spinner" class="spinner" style="display:none"></div>
+              <a href="#" style="margin-left:auto;color:var(--orange);text-decoration:none" class="small">Forgot Password?</a>
+            </div>
+
+            <div id="login-msg" class="error" style="margin-top:10px"></div>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Firebase scripts -->
+  <script type="module">
+    // Import Firebase modules
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    // Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyB1FG7OAGIgJqg3bmpStVTpi0RqpI_DctE",
+      authDomain: "music-app-718f4.firebaseapp.com",
+      databaseURL: "https://music-app-718f4-default-rtdb.firebaseio.com",
+      projectId: "music-app-718f4",
+      storageBucket: "music-app-718f4.firebasestorage.app",
+      messagingSenderId: "91683197015",
+      appId: "1:91683197015:web:92899ecb0c913dc0a95312",
+      measurementId: "G-MQLRPLZZFF"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    // Helper: validate Rwandan phone number formats: +2507XXXXXXXX or 07XXXXXXXX
+    function isRwandaPhone(v) {
+      if (!v) return false;
+      v = v.trim();
+      v = v.replace(/\s+/g, '');
+      return /^\+2507\d{8}$/.test(v) || /^07\d{8}$/.test(v);
+    }
+
+    // Normalize phone number to email format
+    function phoneToEmail(phone) {
+      let normalized = phone.trim().replace(/\s+/g, '');
+      if (/^07/.test(normalized)) {
+        normalized = '+250' + normalized.slice(1);
+      }
+      return normalized + '@kotweb.rw';
+    }
+
+    // Signup step logic
+    const steps = Array.from(document.querySelectorAll('.signup-section'));
+    let cur = 0;
+    const stepEls = document.querySelectorAll('.step');
+    
+    function showStep(i) {
+      steps.forEach((s, idx) => s.style.display = (idx === i) ? 'block' : 'none');
+      stepEls.forEach((el, idx) => el.classList.toggle('active', idx === i));
+      document.getElementById('cur-step').textContent = (i + 1);
+    }
+    showStep(0);
+
+    // Navigation buttons
+    document.getElementById('s1-next').addEventListener('click', () => {
+      // validate section 1
+      const phone = document.getElementById('su-phone').value.trim();
+      const first = document.getElementById('su-first').value.trim();
+      const last = document.getElementById('su-last').value.trim();
+      const username = document.getElementById('su-username').value.trim();
+      const password = document.getElementById('su-password').value;
+      let ok = true;
+
+      if (!isRwandaPhone(phone)) {
+        ok = false;
+        const pe = document.getElementById('phone-error');
+        pe.style.display = 'block';
+        pe.textContent = 'Please enter a valid Rwandan phone number (start with +2507 or 07 and 9 digits).';
+      } else {
+        document.getElementById('phone-error').style.display = 'none';
+      }
+      
+      if (!first || !last) {
+        ok = false;
+        alert('Please enter both first and last name');
+      }
+      
+      if (!username || /\s/.test(username)) {
+        ok = false;
+        const ue = document.getElementById('username-err');
+        ue.style.display = 'block';
+        ue.textContent = 'Username is required and must not contain spaces.';
+      } else {
+        document.getElementById('username-err').style.display = 'none';
+      }
+      
+      if (!password || password.length < 6) {
+        ok = false;
+        alert('Password must be at least 6 characters long');
+      }
+
+      if (ok) {
+        cur = 1;
+        showStep(cur);
+      }
+    });
+
+    document.getElementById('s2-prev').addEventListener('click', () => {
+      cur = 0;
+      showStep(cur);
+    });
+    
+    document.getElementById('s2-next').addEventListener('click', () => {
+      const district = document.getElementById('district-val').textContent;
+      const school = document.getElementById('school-name').value.trim();
+      
+      if (district === '—' || !district) {
+        alert('Please select your district');
+        return;
+      }
+      
+      if (!school) {
+        alert('Please enter your school name');
+        return;
+      }
+      
+      cur = 2;
+      showStep(cur);
+    });
+    
+    document.getElementById('s3-prev').addEventListener('click', () => {
+      cur = 1;
+      showStep(cur);
+    });
+
+    // Signup form submission
+    document.getElementById('s3-submit').addEventListener('click', async () => {
+      const agree = document.getElementById('agree').checked;
+      if (!agree) {
+        const ae = document.getElementById('agree-err');
+        ae.style.display = 'block';
+        ae.textContent = 'You must confirm the information is true.';
+        return;
+      }
+      document.getElementById('agree-err').style.display = 'none';
+
+      // Collect all form values
+      const phone = document.getElementById('su-phone').value.trim().replace(/\s+/g, '');
+      const first = document.getElementById('su-first').value.trim();
+      const last = document.getElementById('su-last').value.trim();
+      const username = document.getElementById('su-username').value.trim();
+      const password = document.getElementById('su-password').value;
+      const district = document.getElementById('district-val').textContent;
+      const school = document.getElementById('school-name').value.trim();
+      const email = phoneToEmail(phone);
+
+      try {
+        // Create user with email and password
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+
+        // Update user profile with display name
+        await updateProfile(user, {
+          displayName: username
+        });
+
+        // Save additional user data to Firestore
+        await setDoc(doc(db, "users", user.uid), {
+          firstName: first,
+          lastName: last,
+          username: username,
+          phone: phone,
+          district: district,
+          school: school,
+          createdAt: new Date()
+        });
+
+        // Redirect to home page
+        window.location.href = "home.html";
+      } catch (error) {
+        console.error("Error creating user:", error);
+        alert("Signup failed: " + error.message);
+      }
+    });
+
+    // Login functionality
+    document.getElementById('login-btn').addEventListener('click', async () => {
+      const phone = document.getElementById('login-phone').value.trim();
+      const password = document.getElementById('login-pass').value;
+      
+      // Validate inputs
+      if (!isRwandaPhone(phone)) {
+        document.getElementById('login-phone-err').style.display = 'block';
+        document.getElementById('login-phone-err').textContent = 'Enter a valid Rwandan phone number.';
+        return;
+      }
+      document.getElementById('login-phone-err').style.display = 'none';
+      
+      if (!password) {
+        document.getElementById('login-pass-err').style.display = 'block';
+        document.getElementById('login-pass-err').textContent = 'Please enter your password.';
+        return;
+      }
+      document.getElementById('login-pass-err').style.display = 'none';
+      
+      // Show loading spinner
+      document.getElementById('login-spinner').style.display = 'inline-block';
+      document.getElementById('login-msg').textContent = '';
+      
+      try {
+        const email = phoneToEmail(phone);
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        
+        // Login successful, redirect to home
+        window.location.href = "home.html";
+      } catch (error) {
+        console.error("Login error:", error);
+        document.getElementById('login-msg').textContent = "Login failed: " + error.message;
+      } finally {
+        document.getElementById('login-spinner').style.display = 'none';
+      }
+    });
+
+    // District dropdown search/select
+    const districtSearch = document.getElementById('district-search');
+    const districtList = document.getElementById('district-list');
+    const districtVal = document.getElementById('district-val');
+    const districts = ['Nyarugenge', 'Kicukiro', 'Gasabo'];
+
+    districtSearch.addEventListener('focus', () => {
+      districtList.style.display = 'block';
+    });
+    
+    districtSearch.addEventListener('input', () => {
+      const q = districtSearch.value.toLowerCase();
+      districtList.style.display = 'block';
+      districtList.innerHTML = '';
+      
+      districts.filter(d => d.toLowerCase().includes(q)).forEach(d => {
+        const el = document.createElement('div');
+        el.className = 'dropdown-item';
+        el.textContent = d;
+        el.addEventListener('click', () => {
+          districtVal.textContent = d;
+          districtSearch.value = d;
+          districtList.style.display = 'none';
+        });
+        districtList.appendChild(el);
+      });
+      
+      if (districtList.innerHTML === '') {
+        districtList.innerHTML = '<div class="dropdown-item">No results</div>';
+      }
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.dropdown')) {
+        districtList.style.display = 'none';
+      }
+    });
+
+    // Tabs toggle (signup/login)
+    document.getElementById('tab-signup').addEventListener('click', () => {
+      document.getElementById('signup-area').style.display = 'block';
+      document.getElementById('login-area').style.display = 'none';
+      document.getElementById('tab-signup').classList.add('active');
+      document.getElementById('tab-login').classList.remove('active');
+    });
+    
+    document.getElementById('tab-login').addEventListener('click', () => {
+      document.getElementById('signup-area').style.display = 'none';
+      document.getElementById('login-area').style.display = 'block';
+      document.getElementById('tab-login').classList.add('active');
+      document.getElementById('tab-signup').classList.remove('active');
+    });
+    
+    document.getElementById('goto-login').addEventListener('click', (e) => {
+      e.preventDefault();
+      document.getElementById('tab-login').click();
+    });
+
+    // Username availability check
+    document.getElementById('su-username').addEventListener('blur', async () => {
+      const username = document.getElementById('su-username').value.trim();
+      if (!username) return;
+      
+      try {
+        // In a real app, you would check against a dedicated usernames collection
+        // For this example, we'll just check if it contains "admin" or "test"
+        if (username.toLowerCase().includes('admin') || username.toLowerCase().includes('test')) {
+          const ue = document.getElementById('username-err');
+          ue.style.display = 'block';
+          ue.textContent = 'This username is not available.';
+        } else {
+          document.getElementById('username-err').style.display = 'none';
+        }
+      } catch (error) {
+        console.error("Error checking username:", error);
+      }
+    });
+  </script>
+</body>
+</html>
