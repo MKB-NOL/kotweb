@@ -302,8 +302,8 @@
   <script type="module">
     // Import Firebase modules
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-    import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    import { getFirestore, doc, setDoc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
     // Firebase configuration
     const firebaseConfig = {
@@ -338,13 +338,15 @@
       return /^\+2507\d{8}$/.test(v) || /^07\d{8}$/.test(v);
     }
 
-    // Normalize phone number to email format
+    // Normalize phone number to email format with @gmail.com
     function phoneToEmail(phone) {
       let normalized = phone.trim().replace(/\s+/g, '');
       if (/^07/.test(normalized)) {
         normalized = '+250' + normalized.slice(1);
       }
-      return normalized + '@kotweb.rw';
+      // Remove the + sign for email compatibility
+      normalized = normalized.replace('+', '');
+      return normalized + '@gmail.com';
     }
 
     // Save user data to local storage
@@ -489,6 +491,15 @@
       const email = phoneToEmail(phone);
 
       try {
+        // Check if username already exists
+        const usersRef = collection(db, "users");
+        const q = query(usersRef, where("username", "==", username));
+        const querySnapshot = await getDocs(q);
+        
+        if (!querySnapshot.empty) {
+          throw new Error("Username already exists. Please choose another one.");
+        }
+
         // Create user with email and password
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
@@ -676,9 +687,11 @@
       if (!username) return;
       
       try {
-        // In a real app, you would check against a dedicated usernames collection
-        // For this example, we'll just check if it contains "admin" or "test"
-        if (username.toLowerCase().includes('admin') || username.toLowerCase().includes('test')) {
+        const usersRef = collection(db, "users");
+        const q = query(usersRef, where("username", "==", username));
+        const querySnapshot = await getDocs(q);
+        
+        if (!querySnapshot.empty) {
           const ue = document.getElementById('username-err');
           ue.style.display = 'block';
           ue.textContent = 'This username is not available.';
