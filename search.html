@@ -426,7 +426,7 @@
             <button class="home-btn" onclick="goHome()">
                 <i class="fas fa-home"></i>
             </button>
-            <div class="page-title">Private Chats</div>
+            <div class="page-title" id="page-title">Private Chats</div>
         </div>
         <div class="header-right">
             <div class="search-container" id="search-container">
@@ -536,6 +536,7 @@
         const friendsEmpty = document.getElementById('friends-empty');
         const requestsList = document.getElementById('requests-list');
         const requestsEmpty = document.getElementById('requests-empty');
+        const pageTitle = document.getElementById('page-title');
 
         // Global variables
         let currentUserData = null;
@@ -555,6 +556,8 @@
                         const userDoc = await getDoc(doc(db, "users", user.uid));
                         if (userDoc.exists()) {
                             currentUserData = userDoc.data();
+                            // Update page title with username
+                            pageTitle.textContent = `Private Chats - ${currentUserData.username}`;
                             setupEventListeners();
                             loadFriends();
                             loadRequests();
