@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Kotweb — Entry</title>
+  <style>
+    :root{--bg:#000;--orange:#ff7a00;--white:#fff;--muted:#999;--error:#ff3333;--success:#33ff66}
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Inter,system-ui,Arial,sans-serif;background:var(--bg);color:var(--white);display:flex;flex-direction:column;min-height:100vh;align-items:center;justify-content:center;padding:20px;text-align:center}
+    h1{color:var(--orange);margin:0 0 8px 0}
+    .desc{margin-bottom:20px;color:var(--muted)}
+
+    .ads{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-bottom:20px}
+    .ad-box{width:320px;height:180px;border:2px dashed var(--muted);display:flex;align-items:center;justify-content:center;font-size:14px;cursor:pointer;position:relative;color:var(--muted)}
+    .ad-box img,.ad-box video{width:100%;height:100%;object-fit:cover}
+
+    .feedback{height:28px;margin-bottom:12px;font-weight:600}
+    .grid{display:grid;grid-template-columns:repeat(6,50px);gap:10px;justify-content:center}
+    .grid button{width:50px;height:50px;background:#111;border:1px solid var(--orange);color:var(--orange);font-size:16px;font-weight:700;cursor:pointer;transition:all .3s}
+    .grid button.correct{background:var(--success);color:#000;}
+    .grid button.wrong{background:var(--error);color:#000;}
+    footer{margin-top:40px;font-size:13px;color:var(--muted)}
+  </style>
+</head>
+<body>
+  <h1>Kotweb</h1>
+  <div class="desc">Welcome to my world, Share in fully Privacy, Enjoy in the darkness</div>
+
+  <div class="ads">
+    <div class="ad-box" onclick="copyEmail()">Ad Area<br/>Contact me<br/>Size: 320x180</div>
+    <div class="ad-box" onclick="copyEmail()">Ad Area<br/>Contact me<br/>Size: 320x180</div>
+  </div>
+
+  <div id="feedback" class="feedback"></div>
+
+  <div class="grid" id="pinGrid"></div>
+
+  <footer>Made by Kotweb ✨</footer>
+
+  <audio id="yesSound" src="yes.mp3" preload="auto"></audio>
+  <audio id="noSound" src="no.mp3" preload="auto"></audio>
+
+  <script>
+    const CORRECT_PIN = "2580";
+    let currentInput = "";
+    let attempts = 0;
+    const feedback = document.getElementById('feedback');
+    const yesSound = document.getElementById('yesSound');
+    const noSound = document.getElementById('noSound');
+
+    const positiveMsgs = ["Wooh!","Excellent","Nice one","Exact","You are made for it","Perfect!","Awesome"];
+    const negativeMsgs = ["Noh","Incorrect","Bruh","WHT ???","Wait what","Are you kidding","Go back broh","Not your stuff"];
+
+    const grid = document.getElementById('pinGrid');
+    for(let i=0;i<=30;i++){
+      const btn=document.createElement('button');
+      btn.textContent=i;
+      btn.onclick=()=>handleClick(btn,i);
+      grid.appendChild(btn);
+    }
+
+    function handleClick(btn,num){
+      currentInput += num;
+      if(currentInput===CORRECT_PIN.substring(0,currentInput.length)){
+        btn.classList.add('correct');
+        playSound(true);
+        feedback.textContent = randomMsg(positiveMsgs);
+      }else{
+        btn.classList.add('wrong');
+        playSound(false);
+        feedback.textContent = randomMsg(negativeMsgs);
+        currentInput = "";
+        setTimeout(()=>{
+          document.querySelectorAll('.grid button').forEach(b=>b.classList.remove('correct','wrong'));
+        },400);
+      }
+
+      if(currentInput.length===4){
+        if(currentInput===CORRECT_PIN){
+          setTimeout(()=>{location.href='login.html'},600);
+        }else{
+          attempts++;
+          currentInput="";
+          setTimeout(()=>{
+            document.querySelectorAll('.grid button').forEach(b=>b.classList.remove('correct','wrong'));
+          },400);
+          if(attempts>=3){
+            feedback.textContent = "Oh Sorry Kotweb is not your type...";
+            setTimeout(()=>{location.href='https://i.pinimg.com/736x/1c/8f/b9/1c8fb9feaf1267dec6cfd42660f5e14d.jpg'},1000);
+          }
+        }
+      }
+    }
+
+    function randomMsg(arr){
+      return arr[Math.floor(Math.random()*arr.length)];
+    }
+
+    function playSound(ok){
+      try{
+        if(ok){yesSound.currentTime=0;yesSound.play();}
+        else{noSound.currentTime=0;noSound.play();}
+      }catch(e){}
+    }
+
+    function copyEmail(){
+      navigator.clipboard.writeText("karekezibertrand@gmail.com").then(()=>{
+        alert("Email copied to clipboard: karekezibertrand@gmail.com");
+      });
+    }
+  </script>
+</body>
+</html>
