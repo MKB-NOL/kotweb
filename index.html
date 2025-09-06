@@ -66,9 +66,10 @@
 
     /* district searchable dropdown */
     .dropdown{position:relative}
-    .dropdown-list{position:absolute;left:0;right:0;top:52px;max-height:160px;overflow:auto;border:1px solid rgba(255,255,255,0.06);background:var(--glass);z-index:40}
-    .dropdown-item{padding:8px 10px;cursor:pointer}
-    .dropdown-item:hover{background:rgba(255,255,255,0.02)}
+    .dropdown-list{position:absolute;left:0;right:0;top:52px;max-height:160px;overflow-y:auto;border:1px solid rgba(255,255,255,0.06);background:#000;z-index:40}
+    .dropdown-item{padding:8px 10px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.06)}
+    .dropdown-item:hover{background:rgba(255,255,255,0.1)}
+    .dropdown-item:last-child{border-bottom:none}
 
     /* small helper */
     .small{font-size:12px;color:var(--muted)}
@@ -216,6 +217,22 @@
               <div class="form-input-group">
                 <label>School name</label>
                 <input type="text" id="school-name" placeholder="Your school name" required />
+              </div>
+
+              <div class="form-input-group">
+                <label>Class</label>
+                <div class="dropdown">
+                  <input id="class-search" type="text" placeholder="Select your class" autocomplete="off" />
+                  <div class="dropdown-list" id="class-list" style="display:none">
+                    <div class="dropdown-item">Senior 1</div>
+                    <div class="dropdown-item">Senior 2</div>
+                    <div class="dropdown-item">Senior 3</div>
+                    <div class="dropdown-item">Senior 4</div>
+                    <div class="dropdown-item">Senior 5</div>
+                    <div class="dropdown-item">Senior 6</div>
+                  </div>
+                </div>
+                <div id="class-selected" class="small muted" style="margin-top:8px">Selected: <span id="class-val">—</span></div>
               </div>
 
               <div class="nav-arrows">
@@ -417,6 +434,7 @@
     document.getElementById('s2-next').addEventListener('click', () => {
       const district = document.getElementById('district-val').textContent;
       const school = document.getElementById('school-name').value.trim();
+      const studentClass = document.getElementById('class-val').textContent;
       
       if (district === '—' || !district) {
         alert('Please select your district');
@@ -425,6 +443,11 @@
       
       if (!school) {
         alert('Please enter your school name');
+        return;
+      }
+      
+      if (studentClass === '—' || !studentClass) {
+        alert('Please select your class');
         return;
       }
       
@@ -462,6 +485,7 @@
       const password = document.getElementById('su-password').value;
       const district = document.getElementById('district-val').textContent;
       const school = document.getElementById('school-name').value.trim();
+      const studentClass = document.getElementById('class-val').textContent;
       const email = phoneToEmail(phone);
 
       try {
@@ -482,6 +506,7 @@
           phone: phone,
           district: district,
           school: school,
+          class: studentClass,
           createdAt: new Date()
         });
 
@@ -493,7 +518,8 @@
           username: username,
           phone: phone,
           district: district,
-          school: school
+          school: school,
+          class: studentClass
         });
 
         // Redirect to home page
@@ -554,7 +580,8 @@
             username: userData.username,
             phone: userData.phone,
             district: userData.district,
-            school: userData.school
+            school: userData.school,
+            class: userData.class
           });
         }
         
@@ -576,35 +603,50 @@
     const districtVal = document.getElementById('district-val');
     const districts = ['Nyarugenge', 'Kicukiro', 'Gasabo'];
 
-    districtSearch.addEventListener('focus', () => {
-      districtList.style.display = 'block';
-    });
-    
-    districtSearch.addEventListener('input', () => {
-      const q = districtSearch.value.toLowerCase();
-      districtList.style.display = 'block';
-      districtList.innerHTML = '';
-      
-      districts.filter(d => d.toLowerCase().includes(q)).forEach(d => {
-        const el = document.createElement('div');
-        el.className = 'dropdown-item';
-        el.textContent = d;
-        el.addEventListener('click', () => {
-          districtVal.textContent = d;
-          districtSearch.value = d;
-          districtList.style.display = 'none';
-        });
-        districtList.appendChild(el);
+    // Class dropdown search/select
+    const classSearch = document.getElementById('class-search');
+    const classList = document.getElementById('class-list');
+    const classVal = document.getElementById('class-val');
+    const classes = ['Senior 1', 'Senior 2', 'Senior 3', 'Senior 4', 'Senior 5', 'Senior 6'];
+
+    // Function to setup dropdown behavior
+    function setupDropdown(searchInput, listElement, valueElement, items) {
+      searchInput.addEventListener('focus', () => {
+        listElement.style.display = 'block';
       });
       
-      if (districtList.innerHTML === '') {
-        districtList.innerHTML = '<div class="dropdown-item">No results</div>';
-      }
-    });
+      searchInput.addEventListener('input', () => {
+        const q = searchInput.value.toLowerCase();
+        listElement.style.display = 'block';
+        listElement.innerHTML = '';
+        
+        items.filter(d => d.toLowerCase().includes(q)).forEach(d => {
+          const el = document.createElement('div');
+          el.className = 'dropdown-item';
+          el.textContent = d;
+          el.addEventListener('click', () => {
+            valueElement.textContent = d;
+            searchInput.value = d;
+            listElement.style.display = 'none';
+          });
+          listElement.appendChild(el);
+        });
+        
+        if (listElement.innerHTML === '') {
+          listElement.innerHTML = '<div class="dropdown-item">No results</div>';
+        }
+      });
+    }
 
+    // Setup both dropdowns
+    setupDropdown(districtSearch, districtList, districtVal, districts);
+    setupDropdown(classSearch, classList, classVal, classes);
+
+    // Close dropdowns when clicking outside
     document.addEventListener('click', (e) => {
       if (!e.target.closest('.dropdown')) {
         districtList.style.display = 'none';
+        classList.style.display = 'none';
       }
     });
 
