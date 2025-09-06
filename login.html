@@ -1,8 +1,8 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Kotweb — Login / Sign up</title>
   <style>
     :root{
@@ -11,7 +11,9 @@
       --white: #ffffff;
       --muted: #bfbfbf;
       --error: #ff3333;
+      --success: #33ff33;
       --glass: rgba(255,255,255,0.03);
+      --dropdown-bg: #1a1a1a;
       font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
     }
 
@@ -23,9 +25,9 @@
     .shell{width:100%;max-width:1080px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border:1px solid rgba(255,255,255,0.04);display:grid;grid-template-columns:420px 1fr;overflow:hidden}
 
     /* Left column - brand & intro */
-    .brand-col{padding:28px 26px;background:linear-gradient(180deg, rgba(0,0,0,0.6), rgba(0,0,0,0.4));border-right:1px solid rgba(255,255,255,0.03)}
-    .logo{font-weight:700;font-size:28px;color:var(--orange);letter-spacing:0.6px}
-    .tag{margin-top:6px;color:var(--muted);font-size:13px}
+    .brand-col{padding:28px 26px;background:linear-gradient(180deg, rgba(0,0,0,0.6), rgba(0,0,0,0.4));border-right:1px solid rgba(255,255,255,0.03);position:relative}
+    .logo{font-weight:700;font-size:28px;color:var(--orange);letter-spacing:0.6px;position:absolute;top:28px;left:26px}
+    .tag{margin-top:46px;color:var(--muted);font-size:13px}
     .hero{margin-top:26px;font-size:14px;line-height:1.45;color:var(--muted)}
 
     /* Right column - forms */
@@ -47,16 +49,32 @@
 
     form .row{display:flex;gap:10px;margin-bottom:12px}
     label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}
-    input[type=text],input[type=password],input[type=tel],select,textarea{width:100%;padding:12px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.02);color:var(--white);outline:none;font-size:16px} /* Increased font size for mobile */
+    input[type=text],input[type=password],input[type=tel],select,textarea{width:100%;padding:10px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.02);color:var(--white);outline:none}
     input:focus{border-color:var(--orange)}
     .muted{font-size:12px;color:var(--muted)}
 
     /* buttons */
-    .btn{display:inline-block;padding:12px 16px;background:var(--orange);color:#000;border:none;cursor:pointer;font-weight:700;font-size:16px} /* Increased size for mobile */
+    .btn{display:inline-block;padding:10px 14px;background:var(--orange);color:#000;border:none;cursor:pointer;font-weight:700}
     .btn.ghost{background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--white)}
+    .btn:disabled{opacity:0.7;cursor:not-allowed}
 
     /* error */
     .error{color:var(--error);font-size:12px;margin-top:6px}
+    .success{color:var(--success);font-size:12px;margin-top:6px}
+
+    /* loading spinner */
+    .spinner {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(255,255,255,.3);
+      border-top: 3px solid var(--orange);
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
 
     /* arrows */
     .nav-arrows{display:flex;justify-content:space-between;margin-top:10px}
@@ -64,12 +82,13 @@
     /* CSS triangle for arrow icon (no border-radius) */
     .arrow svg{display:block}
 
-    /* district searchable dropdown */
+    /* Enhanced dropdown */
     .dropdown{position:relative}
-    .dropdown-list{position:absolute;left:0;right:0;top:52px;max-height:160px;overflow-y:auto;border:1px solid rgba(255,255,255,0.06);background:#000;z-index:40}
-    .dropdown-item{padding:8px 10px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.06)}
-    .dropdown-item:hover{background:rgba(255,255,255,0.1)}
-    .dropdown-item:last-child{border-bottom:none}
+    .dropdown-list{position:absolute;left:0;right:0;top:100%;max-height:200px;overflow-y:auto;border:1px solid rgba(255,255,255,0.06);background:var(--dropdown-bg);z-index:40;display:none;margin-top:4px}
+    .dropdown-item{padding:8px 10px;cursor:pointer;font-size:14px}
+    .dropdown-item:hover{background:rgba(255,255,255,0.05)}
+    .dropdown-search{padding:8px;background:var(--dropdown-bg);border-bottom:1px solid rgba(255,255,255,0.06);position:sticky;top:0}
+    .dropdown-search input{width:100%;padding:8px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);color:var(--white)}
 
     /* small helper */
     .small{font-size:12px;color:var(--muted)}
@@ -77,58 +96,10 @@
     /* login form layout */
     .login-box{max-width:420px}
 
-    /* Loading spinner */
-    .spinner {
-      width: 20px;
-      height: 20px;
-      border: 2px solid rgba(255,255,255,0.3);
-      border-top: 2px solid var(--orange);
-      display: inline-block;
-      animation: spin 1s linear infinite;
-    }
-    
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-    
-    /* Form improvements for mobile */
-    .form-input-group {
-      margin-bottom: 16px;
-    }
-    
-    /* Responsive */
+    /* responsive */
     @media (max-width:900px){
       .shell{grid-template-columns:1fr;padding:0}
       .brand-col{display:none}
-      body{padding:12px;align-items:flex-start;padding-top:24px}
-      .form-col{padding:16px}
-      .card{padding:8px}
-      
-      /* Increase form element sizes on mobile */
-      input[type=text],input[type=password],input[type=tel],select,textarea {
-        padding: 14px;
-        font-size: 16px; /* Prevents zoom on iOS */
-      }
-      
-      .btn {
-        padding: 14px 18px;
-      }
-      
-      .form-input-group {
-        margin-bottom: 20px;
-      }
-    }
-    
-    /* Prevent zoom on iOS */
-    @media screen and (max-width: 900px) {
-      input[type="text"], 
-      input[type="password"], 
-      input[type="tel"],
-      select, 
-      textarea {
-        font-size: 16px !important;
-      }
     }
   </style>
 </head>
@@ -137,20 +108,20 @@
     <div class="brand-col">
       <div class="logo">KOTWEB</div>
       <div class="tag">Where students share knowledge & connect</div>
-      <div class="hero">Join our community of Rwandan students to share notes, ask questions, and connect with peers from your district.</div>
+      <div class="hero">A student social platform for secondary schools — clean, fast, and built for sharing notes, questions, and study groups.</div>
     </div>
 
     <div class="form-col">
       <div class="tabs">
-        <div class="tab active" id="tab-signup">Sign up</div>
-        <div class="tab" id="tab-login">Login</div>
+        <div class="tab" id="tab-signup">Sign up</div>
+        <div class="tab active" id="tab-login">Login</div>
       </div>
 
       <div class="card">
         <!-- SIGNUP FORM (multi-step) -->
-        <div id="signup-area">
+        <div id="signup-area" style="display:none">
           <h2>Create your Kotweb account</h2>
-          <p class="lead">Sign up with your phone number (Rwanda only).</p>
+          <p class="lead">Sign up with your phone number (Rwanda only). We'll use your phone as email.</p>
 
           <div class="stepper" id="signup-stepper">
             <div class="step active" data-step="1">1</div>
@@ -162,34 +133,35 @@
           <form id="signupForm" novalidate>
             <!-- SECTION 1 -->
             <div class="signup-section" data-section="1">
-              <div class="form-input-group">
-                <label>Phone number <span class="muted">(Rwanda only)</span></label>
-                <input type="tel" id="su-phone" placeholder="e.g. +250788123456 or 0788123456" required />
-                <div id="phone-note" class="small muted">Only Rwandan phone numbers allowed (starts with +2507 or 07).</div>
-                <div id="phone-error" class="error" style="display:none"></div>
+              <div class="row">
+                <div style="flex:1">
+                  <label>Phone number <span class="muted">(Rwanda only)</span></label>
+                  <input type="tel" id="su-phone" placeholder="e.g. +250788123456 or 0788123456" required />
+                  <div id="phone-note" class="small muted">Only Rwandan phone numbers allowed (starts with +2507 or 07).</div>
+                  <div id="phone-error" class="error" style="display:none"></div>
+                </div>
               </div>
 
               <div class="row">
-                <div style="flex:1" class="form-input-group">
+                <div style="flex:1">
                   <label>First name</label>
                   <input type="text" id="su-first" placeholder="First name" required />
                 </div>
-                <div style="flex:1" class="form-input-group">
+                <div style="flex:1">
                   <label>Last name</label>
                   <input type="text" id="su-last" placeholder="Last name" required />
                 </div>
               </div>
 
               <div class="row">
-                <div style="flex:1" class="form-input-group">
+                <div style="flex:1">
                   <label>Username</label>
                   <input type="text" id="su-username" placeholder="username (no spaces)" required />
                   <div id="username-err" class="error" style="display:none"></div>
                 </div>
-                <div style="width:180px" class="form-input-group">
+                <div style="width:180px">
                   <label>Password</label>
-                  <input type="password" id="su-password" placeholder="Password" required />
-                  <div class="small muted">Minimum 6 characters</div>
+                  <input type="password" id="su-password" placeholder="Min. 6 characters" required />
                 </div>
               </div>
 
@@ -201,38 +173,45 @@
 
             <!-- SECTION 2 -->
             <div class="signup-section" data-section="2" style="display:none">
-              <div class="form-input-group">
-                <label>Where do you study?</label>
-                <div class="dropdown">
-                  <input id="district-search" type="text" placeholder="Search district (Nyarugenge, Kicukiro, Gasabo)" autocomplete="off" />
-                  <div class="dropdown-list" id="district-list" style="display:none">
-                    <div class="dropdown-item">Nyarugenge</div>
-                    <div class="dropdown-item">Kicukiro</div>
-                    <div class="dropdown-item">Gasabo</div>
+              <div class="row">
+                <div style="flex:1">
+                  <label>School District</label>
+                  <div class="dropdown">
+                    <input id="district-search" type="text" placeholder="Search district" autocomplete="off" />
+                    <div class="dropdown-list" id="district-list">
+                      <div class="dropdown-search">
+                        <input type="text" placeholder="Search districts..." id="district-search-input" />
+                      </div>
+                      <div id="district-options"></div>
+                    </div>
                   </div>
+                  <div id="district-selected" class="small muted" style="margin-top:8px">Selected: <span id="district-val">—</span></div>
                 </div>
-                <div id="district-selected" class="small muted" style="margin-top:8px">Selected: <span id="district-val">—</span></div>
               </div>
 
-              <div class="form-input-group">
-                <label>School name</label>
-                <input type="text" id="school-name" placeholder="Your school name" required />
+              <div class="row">
+                <div style="flex:1">
+                  <label>School name</label>
+                  <input type="text" id="school-name" placeholder="Your school name" required />
+                </div>
               </div>
 
-              <div class="form-input-group">
-                <label>Class</label>
-                <div class="dropdown">
-                  <input id="class-search" type="text" placeholder="Select your class" autocomplete="off" />
-                  <div class="dropdown-list" id="class-list" style="display:none">
-                    <div class="dropdown-item">Senior 1</div>
-                    <div class="dropdown-item">Senior 2</div>
-                    <div class="dropdown-item">Senior 3</div>
-                    <div class="dropdown-item">Senior 4</div>
-                    <div class="dropdown-item">Senior 5</div>
-                    <div class="dropdown-item">Senior 6</div>
+              <div class="row">
+                <div style="flex:1">
+                  <label>Class</label>
+                  <div class="dropdown">
+                    <input id="class-select" type="text" placeholder="Select your class" readonly />
+                    <div class="dropdown-list" id="class-list">
+                      <div class="dropdown-item" data-value="Senior 1">Senior 1</div>
+                      <div class="dropdown-item" data-value="Senior 2">Senior 2</div>
+                      <div class="dropdown-item" data-value="Senior 3">Senior 3</div>
+                      <div class="dropdown-item" data-value="Senior 4">Senior 4</div>
+                      <div class="dropdown-item" data-value="Senior 5">Senior 5</div>
+                      <div class="dropdown-item" data-value="Senior 6">Senior 6</div>
+                    </div>
                   </div>
+                  <div id="class-selected" class="small muted" style="margin-top:8px">Selected: <span id="class-val">—</span></div>
                 </div>
-                <div id="class-selected" class="small muted" style="margin-top:8px">Selected: <span id="class-val">—</span></div>
               </div>
 
               <div class="nav-arrows">
@@ -243,20 +222,25 @@
 
             <!-- SECTION 3 -->
             <div class="signup-section" data-section="3" style="display:none">
-              <div class="form-input-group">
+              <div>
                 <label>Agreement</label>
                 <div style="background:rgba(255,255,255,0.02);padding:12px;border:1px solid rgba(255,255,255,0.04)">
-                  <p class="small">Do you confirm all the given information are all true, because in fact it may have effects in your experience.</p>
+                  <p class="small">Do you confirm all the given information is true? Providing false information may affect your experience on the platform.</p>
                 </div>
 
                 <div style="margin-top:12px">
-                  <label><input type="checkbox" id="agree" /> I confirm all information is true</label>
+                  <label><input type="checkbox" id="agree" /> I confirm all information is true and accept the Terms of Service</label>
                   <div id="agree-err" class="error" style="display:none"></div>
                 </div>
 
                 <div class="nav-arrows">
                   <div class="arrow" id="s3-prev"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="square" stroke-linejoin="miter"/></svg></div>
-                  <div><button type="button" class="btn" id="s3-submit">Continue & Confirm</button></div>
+                  <div>
+                    <button type="submit" class="btn" id="s3-submit">
+                      <span id="submit-text">Continue & Confirm</span>
+                      <span id="submit-loading" style="display:none"><span class="spinner"></span> Creating account...</span>
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -266,113 +250,198 @@
         </div>
 
         <!-- LOGIN FORM -->
-        <div id="login-area" style="display:none">
+        <div id="login-area">
           <h2>Login to Kotweb</h2>
-          <p class="lead">Use your phone number and password.</p>
+          <p class="lead">Use your phone number, username, or email to login.</p>
 
           <div class="login-box">
-            <div class="form-input-group">
-              <label>Phone number</label>
-              <input type="tel" id="login-phone" placeholder="+250788123456 or 0788123456" />
-              <div id="login-phone-err" class="error" style="display:none"></div>
-            </div>
+            <form id="loginForm">
+              <label>Phone, username, or email</label>
+              <input type="text" id="login-identifier" placeholder="Phone, username, or email" required />
+              <div id="login-identifier-err" class="error" style="display:none"></div>
 
-            <div class="form-input-group">
-              <label>Password</label>
-              <input type="password" id="login-pass" placeholder="Password" />
-              <div id="login-pass-err" class="error" style="display:none"></div>
-            </div>
+              <div style="margin-top:10px">
+                <label>Password</label>
+                <input type="password" id="login-pass" placeholder="Password" required />
+                <div id="login-pass-err" class="error" style="display:none"></div>
+              </div>
 
-            <div style="margin-top:12px;display:flex;gap:8px;align-items:center">
-              <button class="btn" id="login-btn">Login</button>
-              <div id="login-spinner" class="spinner" style="display:none"></div>
-              <a href="#" style="margin-left:auto;color:var(--orange);text-decoration:none" class="small">Forgot Password?</a>
-            </div>
+              <div style="margin-top:12px;display:flex;gap:8px;align-items:center">
+                <button type="submit" class="btn" id="login-btn">
+                  <span id="login-text">Login</span>
+                  <span id="login-loading" style="display:none"><span class="spinner"></span> Logging in...</span>
+                </button>
+                <a href="#" style="margin-left:auto;color:var(--orange);text-decoration:none" class="small">Forgot Password?</a>
+              </div>
 
-            <div id="login-msg" class="error" style="margin-top:10px"></div>
+              <div id="login-msg" style="margin-top:10px"></div>
+            </form>
           </div>
-
         </div>
-
       </div>
     </div>
   </div>
 
-  <!-- Firebase scripts -->
+  <!-- Firebase SDK -->
   <script type="module">
-    // Import Firebase modules
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-    import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    // Import the functions you need from the SDKs you need
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-analytics.js";
+    import { 
+      getAuth, 
+      createUserWithEmailAndPassword, 
+      signInWithEmailAndPassword, 
+      updateProfile,
+      setPersistence,
+      browserSessionPersistence 
+    } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
+    import { 
+      getFirestore, 
+      doc, 
+      setDoc, 
+      getDoc, 
+      query, 
+      where, 
+      collection, 
+      getDocs 
+    } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
 
-    // Firebase configuration
+    // Your web app's Firebase configuration
     const firebaseConfig = {
-      apiKey: "AIzaSyB1FG7OAGIgJqg3bmpStVTpi0RqpI_DctE",
-      authDomain: "music-app-718f4.firebaseapp.com",
-      databaseURL: "https://music-app-718f4-default-rtdb.firebaseio.com",
-      projectId: "music-app-718f4",
-      storageBucket: "music-app-718f4.firebasestorage.app",
-      messagingSenderId: "91683197015",
-      appId: "1:91683197015:web:92899ecb0c913dc0a95312",
-      measurementId: "G-MQLRPLZZFF"
+      apiKey: "AIzaSyAsfXkzcFVmsQLWGF_WqCPQWn7SRqkcvK8",
+      authDomain: "kotweb-dd995.firebaseapp.com",
+      projectId: "kotweb-dd995",
+      storageBucket: "kotweb-dd995.firebasestorage.app",
+      messagingSenderId: "534760591484",
+      appId: "1:534760591484:web:1c90379da7852ddec2f9f9",
+      measurementId: "G-9ZH53YSQZT"
     };
 
     // Initialize Firebase
     const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    // Check if user is already logged in
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        // User is signed in, redirect to home page
-        window.location.href = "home.html";
-      }
-    });
+    // Set persistence to session
+    setPersistence(auth, browserSessionPersistence)
+      .catch((error) => {
+        console.error("Error setting persistence:", error);
+      });
+
+    // District data
+    const districts = [
+      "Gasabo", "Kicukiro", "Nyarugenge", 
+      "Burera", "Gakenke", "Gicumbi", "Musanze", "Rulindo", 
+      "Gisagara", "Huye", "Kamonyi", "Muhanga", "Nyamagabe", "Nyanza", "Nyaruguru", "Ruhango", 
+      "Karongi", "Ngororero", "Nyabihu", "Nyamasheke", "Rubavu", "Rusizi", "Rutsiro", 
+      "Bugesera", "Gatsibo", "Kayonza", "Kirehe", "Ngoma", "Nyagatare", "Rwamagana"
+    ];
 
     // Helper: validate Rwandan phone number formats: +2507XXXXXXXX or 07XXXXXXXX
     function isRwandaPhone(v) {
       if (!v) return false;
-      v = v.trim();
-      v = v.replace(/\s+/g, '');
+      v = v.trim().replace(/\s+/g, '');
       return /^\+2507\d{8}$/.test(v) || /^07\d{8}$/.test(v);
     }
 
-    // Normalize phone number to email format
-    function phoneToEmail(phone) {
-      let normalized = phone.trim().replace(/\s+/g, '');
-      if (/^07/.test(normalized)) {
-        normalized = '+250' + normalized.slice(1);
+    // Normalize phone number to +250 format
+    function normalizePhone(phone) {
+      if (!phone) return '';
+      phone = phone.trim().replace(/\s+/g, '');
+      if (phone.startsWith('07')) {
+        return '+250' + phone.substring(1);
       }
-      return normalized + '@kotweb.rw';
+      return phone;
     }
 
-    // Save user data to local storage
-    function saveUserToLocalStorage(userData) {
-      localStorage.setItem('kotweb_user', JSON.stringify(userData));
-      localStorage.setItem('kotweb_auth_timestamp', new Date().getTime());
+    // Check if username is already taken
+    async function isUsernameTaken(username) {
+      try {
+        const usersRef = collection(db, "users");
+        const q = query(usersRef, where("username", "==", username.toLowerCase()));
+        const querySnapshot = await getDocs(q);
+        return !querySnapshot.empty;
+      } catch (error) {
+        console.error("Error checking username:", error);
+        return true; // Assume taken to prevent errors
+      }
     }
 
-    // Check if user is already logged in (prevent multiple logins)
-    function checkExistingSession() {
-      const userData = localStorage.getItem('kotweb_user');
-      const authTimestamp = localStorage.getItem('kotweb_auth_timestamp');
+    // Initialize dropdown functionality
+    function initDropdowns() {
+      // District dropdown
+      const districtSearch = document.getElementById('district-search');
+      const districtList = document.getElementById('district-list');
+      const districtOptions = document.getElementById('district-options');
+      const districtVal = document.getElementById('district-val');
+      const districtSearchInput = document.getElementById('district-search-input');
       
-      if (userData && authTimestamp) {
-        // Check if session is recent (within last 5 minutes)
-        const now = new Date().getTime();
-        if (now - parseInt(authTimestamp) < 5 * 60 * 1000) {
-          window.location.href = "home.html";
+      // Populate district options
+      districts.forEach(district => {
+        const option = document.createElement('div');
+        option.className = 'dropdown-item';
+        option.textContent = district;
+        option.dataset.value = district;
+        option.addEventListener('click', () => {
+          districtVal.textContent = district;
+          districtSearch.value = district;
+          districtList.style.display = 'none';
+        });
+        districtOptions.appendChild(option);
+      });
+      
+      // District search functionality
+      districtSearchInput.addEventListener('input', () => {
+        const searchTerm = districtSearchInput.value.toLowerCase();
+        const options = districtOptions.querySelectorAll('.dropdown-item');
+        
+        options.forEach(option => {
+          const text = option.textContent.toLowerCase();
+          if (text.includes(searchTerm)) {
+            option.style.display = 'block';
+          } else {
+            option.style.display = 'none';
+          }
+        });
+      });
+      
+      // Toggle district dropdown
+      districtSearch.addEventListener('focus', () => {
+        districtList.style.display = 'block';
+        districtSearchInput.focus();
+      });
+      
+      // Class dropdown
+      const classSelect = document.getElementById('class-select');
+      const classList = document.getElementById('class-list');
+      const classVal = document.getElementById('class-val');
+      
+      classSelect.addEventListener('focus', () => {
+        classList.style.display = 'block';
+      });
+      
+      // Class selection
+      classList.querySelectorAll('.dropdown-item').forEach(item => {
+        item.addEventListener('click', () => {
+          classVal.textContent = item.dataset.value;
+          classSelect.value = item.dataset.value;
+          classList.style.display = 'none';
+        });
+      });
+      
+      // Close dropdowns when clicking outside
+      document.addEventListener('click', (e) => {
+        if (!e.target.closest('.dropdown')) {
+          districtList.style.display = 'none';
+          classList.style.display = 'none';
         }
-      }
+      });
     }
-
-    // Call this on page load
-    checkExistingSession();
 
     // Signup step logic
     const steps = Array.from(document.querySelectorAll('.signup-section'));
-    let cur = 0;
+    let curStep = 0;
     const stepEls = document.querySelectorAll('.step');
     
     function showStep(i) {
@@ -380,10 +449,9 @@
       stepEls.forEach((el, idx) => el.classList.toggle('active', idx === i));
       document.getElementById('cur-step').textContent = (i + 1);
     }
-    showStep(0);
 
     // Navigation buttons
-    document.getElementById('s1-next').addEventListener('click', () => {
+    document.getElementById('s1-next').addEventListener('click', async () => {
       // validate section 1
       const phone = document.getElementById('su-phone').value.trim();
       const first = document.getElementById('su-first').value.trim();
@@ -392,303 +460,327 @@
       const password = document.getElementById('su-password').value;
       let ok = true;
 
+      // Reset errors
+      document.getElementById('phone-error').style.display = 'none';
+      document.getElementById('username-err').style.display = 'none';
+
       if (!isRwandaPhone(phone)) {
         ok = false;
-        const pe = document.getElementById('phone-error');
-        pe.style.display = 'block';
+        const pe = document.getElementById('phone-error'); 
+        pe.style.display = 'block'; 
         pe.textContent = 'Please enter a valid Rwandan phone number (start with +2507 or 07 and 9 digits).';
-      } else {
-        document.getElementById('phone-error').style.display = 'none';
       }
       
-      if (!first || !last) {
-        ok = false;
-        alert('Please enter both first and last name');
+      if (!first || !last) { 
+        ok = false; 
+        alert('Please enter both first and last name.');
       }
       
       if (!username || /\s/.test(username)) {
-        ok = false;
-        const ue = document.getElementById('username-err');
-        ue.style.display = 'block';
+        ok = false; 
+        const ue = document.getElementById('username-err'); 
+        ue.style.display = 'block'; 
         ue.textContent = 'Username is required and must not contain spaces.';
-      } else {
-        document.getElementById('username-err').style.display = 'none';
       }
       
       if (!password || password.length < 6) {
         ok = false;
-        alert('Password must be at least 6 characters long');
+        alert('Password must be at least 6 characters long.');
+      }
+      
+      // Check if username is available
+      if (ok && username) {
+        const usernameTaken = await isUsernameTaken(username);
+        if (usernameTaken) {
+          ok = false;
+          const ue = document.getElementById('username-err'); 
+          ue.style.display = 'block'; 
+          ue.textContent = 'This username is already taken. Please choose another one.';
+        }
       }
 
-      if (ok) {
-        cur = 1;
-        showStep(cur);
+      if (ok) { 
+        curStep = 1; 
+        showStep(curStep); 
       }
     });
 
-    document.getElementById('s2-prev').addEventListener('click', () => {
-      cur = 0;
-      showStep(cur);
-    });
-    
-    document.getElementById('s2-next').addEventListener('click', () => {
+    document.getElementById('s2-prev').addEventListener('click', () => { curStep = 0; showStep(curStep); });
+    document.getElementById('s2-next').addEventListener('click', () => { 
       const district = document.getElementById('district-val').textContent;
       const school = document.getElementById('school-name').value.trim();
       const studentClass = document.getElementById('class-val').textContent;
       
-      if (district === '—' || !district) {
-        alert('Please select your district');
+      if (district === '—') {
+        alert('Please select your district.');
         return;
       }
       
       if (!school) {
-        alert('Please enter your school name');
+        alert('Please enter your school name.');
         return;
       }
       
-      if (studentClass === '—' || !studentClass) {
-        alert('Please select your class');
+      if (studentClass === '—') {
+        alert('Please select your class.');
         return;
       }
       
-      cur = 2;
-      showStep(cur);
+      curStep = 2; 
+      showStep(curStep); 
     });
     
-    document.getElementById('s3-prev').addEventListener('click', () => {
-      cur = 1;
-      showStep(cur);
+    document.getElementById('s3-prev').addEventListener('click', () => { curStep = 1; showStep(curStep); });
+
+    // Tabs toggle (signup/login)
+    document.getElementById('tab-signup').addEventListener('click', () => { 
+      document.getElementById('signup-area').style.display = 'block'; 
+      document.getElementById('login-area').style.display = 'none'; 
+      document.getElementById('tab-signup').classList.add('active'); 
+      document.getElementById('tab-login').classList.remove('active'); 
+    });
+    
+    document.getElementById('tab-login').addEventListener('click', () => { 
+      document.getElementById('signup-area').style.display = 'none'; 
+      document.getElementById('login-area').style.display = 'block'; 
+      document.getElementById('tab-login').classList.add('active'); 
+      document.getElementById('tab-signup').classList.remove('active'); 
+    });
+    
+    document.getElementById('goto-login').addEventListener('click', (e) => { 
+      e.preventDefault(); 
+      document.getElementById('tab-login').click(); 
     });
 
     // Signup form submission
-    document.getElementById('s3-submit').addEventListener('click', async () => {
+    document.getElementById('signupForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
       const agree = document.getElementById('agree').checked;
-      if (!agree) {
-        const ae = document.getElementById('agree-err');
-        ae.style.display = 'block';
-        ae.textContent = 'You must confirm the information is true.';
-        return;
+      if (!agree) { 
+        const ae = document.getElementById('agree-err'); 
+        ae.style.display = 'block'; 
+        ae.textContent = 'You must confirm the information is true.'; 
+        return; 
       }
+      
       document.getElementById('agree-err').style.display = 'none';
 
       // Show loading state
-      const submitBtn = document.getElementById('s3-submit');
-      const originalText = submitBtn.textContent;
-      submitBtn.innerHTML = '<div class="spinner"></div>';
-      submitBtn.disabled = true;
-
-      // Collect all form values
-      const phone = document.getElementById('su-phone').value.trim().replace(/\s+/g, '');
-      const first = document.getElementById('su-first').value.trim();
-      const last = document.getElementById('su-last').value.trim();
-      const username = document.getElementById('su-username').value.trim();
-      const password = document.getElementById('su-password').value;
-      const district = document.getElementById('district-val').textContent;
-      const school = document.getElementById('school-name').value.trim();
-      const studentClass = document.getElementById('class-val').textContent;
-      const email = phoneToEmail(phone);
+      document.getElementById('submit-text').style.display = 'none';
+      document.getElementById('submit-loading').style.display = 'inline';
+      document.getElementById('s3-submit').disabled = true;
 
       try {
-        // Create user with email and password
+        // Collect form values
+        const phone = document.getElementById('su-phone').value.trim();
+        const first = document.getElementById('su-first').value.trim();
+        const last = document.getElementById('su-last').value.trim();
+        const username = document.getElementById('su-username').value.trim();
+        const password = document.getElementById('su-password').value;
+        const district = document.getElementById('district-val').textContent;
+        const school = document.getElementById('school-name').value.trim();
+        const studentClass = document.getElementById('class-val').textContent;
+        
+        // Create email from phone number (using @gmail.com as requested)
+        const normalizedPhone = normalizePhone(phone);
+        const email = `${normalizedPhone}@gmail.com`;
+        
+        // Create user with Firebase Auth
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
-
-        // Update user profile with display name
+        
+        // Update profile with display name
         await updateProfile(user, {
-          displayName: username
+          displayName: `${first} ${last}`
         });
-
+        
         // Save additional user data to Firestore
         await setDoc(doc(db, "users", user.uid), {
+          uid: user.uid,
+          phone: normalizedPhone,
           firstName: first,
           lastName: last,
-          username: username,
-          phone: phone,
+          username: username.toLowerCase(),
+          displayName: `${first} ${last}`,
+          email: email,
           district: district,
           school: school,
           class: studentClass,
           createdAt: new Date()
         });
-
-        // Save user data to local storage
-        saveUserToLocalStorage({
-          uid: user.uid,
-          firstName: first,
-          lastName: last,
-          username: username,
-          phone: phone,
-          district: district,
-          school: school,
-          class: studentClass
-        });
-
-        // Redirect to home page
-        window.location.href = "home.html";
-      } catch (error) {
-        console.error("Error creating user:", error);
-        alert("Signup failed: " + error.message);
         
-        // Restore button state
-        submitBtn.textContent = originalText;
-        submitBtn.disabled = false;
+        // Show success message and redirect
+        alert('Account created successfully! You will now be redirected to the home page.');
+        window.location.href = 'home.html';
+        
+      } catch (error) {
+        // Handle errors
+        console.error("Signup error:", error);
+        
+        document.getElementById('submit-text').style.display = 'inline';
+        document.getElementById('submit-loading').style.display = 'none';
+        document.getElementById('s3-submit').disabled = false;
+        
+        let errorMessage = 'An error occurred during signup.';
+        
+        switch (error.code) {
+          case 'auth/email-already-in-use':
+            errorMessage = 'This phone number is already registered.';
+            break;
+          case 'auth/weak-password':
+            errorMessage = 'Password is too weak.';
+            break;
+          case 'auth/invalid-email':
+            errorMessage = 'Invalid phone number format.';
+            break;
+          default:
+            errorMessage = error.message || 'An error occurred during signup.';
+        }
+        
+        alert(errorMessage);
       }
     });
 
-    // Login functionality
-    document.getElementById('login-btn').addEventListener('click', async () => {
-      const phone = document.getElementById('login-phone').value.trim();
+    // Login form submission
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      // Get form values
+      const identifier = document.getElementById('login-identifier').value.trim();
       const password = document.getElementById('login-pass').value;
       
-      // Validate inputs
-      if (!isRwandaPhone(phone)) {
-        document.getElementById('login-phone-err').style.display = 'block';
-        document.getElementById('login-phone-err').textContent = 'Enter a valid Rwandan phone number.';
-        return;
+      // Reset error messages
+      document.getElementById('login-identifier-err').style.display = 'none';
+      document.getElementById('login-pass-err').style.display = 'none';
+      document.getElementById('login-msg').className = '';
+      document.getElementById('login-msg').textContent = '';
+      
+      // Validate form
+      let isValid = true;
+      
+      if (!identifier) {
+        document.getElementById('login-identifier-err').style.display = 'block';
+        document.getElementById('login-identifier-err').textContent = 'Username or phone number is required.';
+        isValid = false;
       }
-      document.getElementById('login-phone-err').style.display = 'none';
       
       if (!password) {
         document.getElementById('login-pass-err').style.display = 'block';
-        document.getElementById('login-pass-err').textContent = 'Please enter your password.';
-        return;
+        document.getElementById('login-pass-err').textContent = 'Password is required.';
+        isValid = false;
       }
-      document.getElementById('login-pass-err').style.display = 'none';
+      
+      if (!isValid) return;
       
       // Show loading state
-      const loginBtn = document.getElementById('login-btn');
-      const originalText = loginBtn.textContent;
-      loginBtn.innerHTML = '<div class="spinner"></div>';
-      loginBtn.disabled = true;
-      document.getElementById('login-msg').textContent = '';
+      document.getElementById('login-text').style.display = 'none';
+      document.getElementById('login-loading').style.display = 'inline';
+      document.getElementById('login-btn').disabled = true;
       
       try {
-        const email = phoneToEmail(phone);
-        const userCredential = await signInWithEmailAndPassword(auth, email, password);
-        const user = userCredential.user;
+        let emailToUse = '';
         
-        // Get additional user data from Firestore
-        const userDoc = await getDoc(doc(db, "users", user.uid));
-        
-        if (userDoc.exists()) {
-          const userData = userDoc.data();
+        // Check if identifier is a phone number
+        if (isRwandaPhone(identifier)) {
+          const normalizedPhone = normalizePhone(identifier);
+          emailToUse = `${normalizedPhone}@gmail.com`;
+        } else if (identifier.includes('@')) {
+          // Identifier is an email
+          emailToUse = identifier;
+        } else {
+          // Identifier is a username, so we need to look up the associated email
+          const usersRef = collection(db, "users");
+          const q = query(usersRef, where("username", "==", identifier.toLowerCase()));
+          const querySnapshot = await getDocs(q);
           
-          // Save user data to local storage
-          saveUserToLocalStorage({
-            uid: user.uid,
-            firstName: userData.firstName,
-            lastName: userData.lastName,
-            username: userData.username,
-            phone: userData.phone,
-            district: userData.district,
-            school: userData.school,
-            class: userData.class
-          });
+          if (querySnapshot.empty) {
+            throw new Error('auth/user-not-found');
+          }
+          
+          // Get the first matching user (usernames should be unique)
+          const userDoc = querySnapshot.docs[0];
+          emailToUse = userDoc.data().email;
         }
         
-        // Login successful, redirect to home
-        window.location.href = "home.html";
+        // Sign in with email and password
+        await signInWithEmailAndPassword(auth, emailToUse, password);
+        
+        // Show success message and redirect
+        document.getElementById('login-msg').className = 'success';
+        document.getElementById('login-msg').textContent = 'Login successful! Redirecting...';
+        
+        setTimeout(() => {
+          window.location.href = 'home.html';
+        }, 1500);
+        
       } catch (error) {
+        // Handle errors
         console.error("Login error:", error);
-        document.getElementById('login-msg').textContent = "Login failed: " + error.message;
         
-        // Restore button state
-        loginBtn.textContent = originalText;
-        loginBtn.disabled = false;
-      }
-    });
-
-    // District dropdown search/select
-    const districtSearch = document.getElementById('district-search');
-    const districtList = document.getElementById('district-list');
-    const districtVal = document.getElementById('district-val');
-    const districts = ['Nyarugenge', 'Kicukiro', 'Gasabo'];
-
-    // Class dropdown search/select
-    const classSearch = document.getElementById('class-search');
-    const classList = document.getElementById('class-list');
-    const classVal = document.getElementById('class-val');
-    const classes = ['Senior 1', 'Senior 2', 'Senior 3', 'Senior 4', 'Senior 5', 'Senior 6'];
-
-    // Function to setup dropdown behavior
-    function setupDropdown(searchInput, listElement, valueElement, items) {
-      searchInput.addEventListener('focus', () => {
-        listElement.style.display = 'block';
-      });
-      
-      searchInput.addEventListener('input', () => {
-        const q = searchInput.value.toLowerCase();
-        listElement.style.display = 'block';
-        listElement.innerHTML = '';
+        document.getElementById('login-text').style.display = 'inline';
+        document.getElementById('login-loading').style.display = 'none';
+        document.getElementById('login-btn').disabled = false;
         
-        items.filter(d => d.toLowerCase().includes(q)).forEach(d => {
-          const el = document.createElement('div');
-          el.className = 'dropdown-item';
-          el.textContent = d;
-          el.addEventListener('click', () => {
-            valueElement.textContent = d;
-            searchInput.value = d;
-            listElement.style.display = 'none';
-          });
-          listElement.appendChild(el);
-        });
+        document.getElementById('login-msg').className = 'error';
         
-        if (listElement.innerHTML === '') {
-          listElement.innerHTML = '<div class="dropdown-item">No results</div>';
+        switch (error.code) {
+          case 'auth/user-not-found':
+            document.getElementById('login-msg').textContent = 'No account found with this username/phone number.';
+            break;
+          case 'auth/wrong-password':
+            document.getElementById('login-msg').textContent = 'Incorrect password.';
+            break;
+          case 'auth/invalid-email':
+            document.getElementById('login-msg').textContent = 'Invalid username/phone number format.';
+            break;
+          case 'auth/invalid-credential':
+            document.getElementById('login-msg').textContent = 'Invalid credentials.';
+            break;
+          default:
+            document.getElementById('login-msg').textContent = error.message || 'An error occurred during login.';
         }
-      });
-    }
-
-    // Setup both dropdowns
-    setupDropdown(districtSearch, districtList, districtVal, districts);
-    setupDropdown(classSearch, classList, classVal, classes);
-
-    // Close dropdowns when clicking outside
-    document.addEventListener('click', (e) => {
-      if (!e.target.closest('.dropdown')) {
-        districtList.style.display = 'none';
-        classList.style.display = 'none';
       }
     });
 
-    // Tabs toggle (signup/login)
-    document.getElementById('tab-signup').addEventListener('click', () => {
-      document.getElementById('signup-area').style.display = 'block';
-      document.getElementById('login-area').style.display = 'none';
-      document.getElementById('tab-signup').classList.add('active');
-      document.getElementById('tab-login').classList.remove('active');
-    });
-    
-    document.getElementById('tab-login').addEventListener('click', () => {
-      document.getElementById('signup-area').style.display = 'none';
-      document.getElementById('login-area').style.display = 'block';
-      document.getElementById('tab-login').classList.add('active');
-      document.getElementById('tab-signup').classList.remove('active');
-    });
-    
-    document.getElementById('goto-login').addEventListener('click', (e) => {
-      e.preventDefault();
-      document.getElementById('tab-login').click();
-    });
-
-    // Username availability check
+    // Username availability check on blur
     document.getElementById('su-username').addEventListener('blur', async () => {
       const username = document.getElementById('su-username').value.trim();
       if (!username) return;
       
-      try {
-        // In a real app, you would check against a dedicated usernames collection
-        // For this example, we'll just check if it contains "admin" or "test"
-        if (username.toLowerCase().includes('admin') || username.toLowerCase().includes('test')) {
-          const ue = document.getElementById('username-err');
-          ue.style.display = 'block';
-          ue.textContent = 'This username is not available.';
-        } else {
-          document.getElementById('username-err').style.display = 'none';
-        }
-      } catch (error) {
-        console.error("Error checking username:", error);
+      document.getElementById('username-err').style.display = 'none';
+      
+      if (/\s/.test(username)) {
+        document.getElementById('username-err').style.display = 'block';
+        document.getElementById('username-err').textContent = 'Username must not contain spaces.';
+        return;
+      }
+      
+      const usernameTaken = await isUsernameTaken(username);
+      if (usernameTaken) {
+        document.getElementById('username-err').style.display = 'block';
+        document.getElementById('username-err').textContent = 'This username is already taken. Please choose another one.';
       }
     });
+
+    // Phone number validation
+    document.getElementById('su-phone').addEventListener('input', () => {
+      const v = document.getElementById('su-phone').value.trim().replace(/\s+/g, '');
+      
+      document.getElementById('phone-error').style.display = 'none';
+      
+      if (isRwandaPhone(v)) {
+        const normalizedPhone = normalizePhone(v);
+        document.getElementById('phone-note').textContent = `Your account email will be: ${normalizedPhone}@gmail.com`;
+      } else {
+        document.getElementById('phone-note').textContent = 'Only Rwandan phone numbers allowed (starts with +2507 or 07).';
+      }
+    });
+
+    // Initialize the page
+    initDropdowns();
+    showStep(0); // Start with step 1
+
   </script>
 </body>
 </html>
