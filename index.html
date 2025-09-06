@@ -47,12 +47,12 @@
 
     form .row{display:flex;gap:10px;margin-bottom:12px}
     label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}
-    input[type=text],input[type=password],input[type=tel],select,textarea{width:100%;padding:12px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.02);color:var(--white);outline:none;font-size:16px} /* Increased font size for mobile */
+    input[type=text],input[type=password],input[type=tel],select,textarea{width:100%;padding:12px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.02);color:var(--white);outline:none;font-size:16px}
     input:focus{border-color:var(--orange)}
     .muted{font-size:12px;color:var(--muted)}
 
     /* buttons */
-    .btn{display:inline-block;padding:12px 16px;background:var(--orange);color:#000;border:none;cursor:pointer;font-weight:700;font-size:16px} /* Increased size for mobile */
+    .btn{display:inline-block;padding:12px 16px;background:var(--orange);color:#000;border:none;cursor:pointer;font-weight:700;font-size:16px}
     .btn.ghost{background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--white)}
 
     /* error */
@@ -61,7 +61,6 @@
     /* arrows */
     .nav-arrows{display:flex;justify-content:space-between;margin-top:10px}
     .arrow{width:36px;height:36px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;border:1px solid rgba(255,255,255,0.06)}
-    /* CSS triangle for arrow icon (no border-radius) */
     .arrow svg{display:block}
 
     /* district searchable dropdown */
@@ -105,10 +104,9 @@
       .form-col{padding:16px}
       .card{padding:8px}
       
-      /* Increase form element sizes on mobile */
       input[type=text],input[type=password],input[type=tel],select,textarea {
         padding: 14px;
-        font-size: 16px; /* Prevents zoom on iOS */
+        font-size: 16px;
       }
       
       .btn {
@@ -120,7 +118,6 @@
       }
     }
     
-    /* Prevent zoom on iOS */
     @media screen and (max-width: 900px) {
       input[type="text"], 
       input[type="password"], 
@@ -298,12 +295,11 @@
     </div>
   </div>
 
-  <!-- Firebase scripts -->
   <script type="module">
     // Import Firebase modules
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-    import { getFirestore, doc, setDoc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
     // Firebase configuration
     const firebaseConfig = {
@@ -338,33 +334,36 @@
       return /^\+2507\d{8}$/.test(v) || /^07\d{8}$/.test(v);
     }
 
-    // Normalize phone number to email format with @gmail.com
+    // Normalize phone number to email format
     function phoneToEmail(phone) {
       let normalized = phone.trim().replace(/\s+/g, '');
       if (/^07/.test(normalized)) {
         normalized = '+250' + normalized.slice(1);
       }
-      // Remove the + sign for email compatibility
-      normalized = normalized.replace('+', '');
       return normalized + '@gmail.com';
     }
 
-    // Save user data to local storage
-    function saveUserToLocalStorage(userData) {
-      localStorage.setItem('kotweb_user', JSON.stringify(userData));
-      localStorage.setItem('kotweb_auth_timestamp', new Date().getTime());
+    // Set HTTP-only cookie with JWT token
+    function setAuthCookie(token, days = 7) {
+      const d = new Date();
+      d.setTime(d.getTime() + (days * 24 * 60 * 60 * 1000));
+      const expires = "expires=" + d.toUTCString();
+      document.cookie = `kotweb_token=${token};${expires};path=/;Secure;SameSite=Strict`;
     }
 
     // Check if user is already logged in (prevent multiple logins)
     function checkExistingSession() {
-      const userData = localStorage.getItem('kotweb_user');
-      const authTimestamp = localStorage.getItem('kotweb_auth_timestamp');
+      const cookies = document.cookie.split(';');
+      const tokenCookie = cookies.find(cookie => cookie.trim().startsWith('kotweb_token='));
       
-      if (userData && authTimestamp) {
+      if (tokenCookie) {
         // Check if session is recent (within last 5 minutes)
-        const now = new Date().getTime();
-        if (now - parseInt(authTimestamp) < 5 * 60 * 1000) {
-          window.location.href = "home.html";
+        const authTimestamp = sessionStorage.getItem('kotweb_auth_timestamp');
+        if (authTimestamp) {
+          const now = new Date().getTime();
+          if (now - parseInt(authTimestamp) < 5 * 60 * 1000) {
+            window.location.href = "home.html";
+          }
         }
       }
     }
@@ -491,15 +490,6 @@
       const email = phoneToEmail(phone);
 
       try {
-        // Check if username already exists
-        const usersRef = collection(db, "users");
-        const q = query(usersRef, where("username", "==", username));
-        const querySnapshot = await getDocs(q);
-        
-        if (!querySnapshot.empty) {
-          throw new Error("Username already exists. Please choose another one.");
-        }
-
         // Create user with email and password
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
@@ -521,23 +511,40 @@
           createdAt: new Date()
         });
 
-        // Save user data to local storage
-        saveUserToLocalStorage({
+        // Generate a simple JWT-like token (in a real app, this would come from your backend)
+        const token = btoa(JSON.stringify({
           uid: user.uid,
-          firstName: first,
-          lastName: last,
           username: username,
-          phone: phone,
+          email: email,
+          exp: Date.now() + (7 * 24 * 60 * 60 * 1000) // 7 days from now
+        }));
+        
+        // Set HTTP-only cookie with the token
+        setAuthCookie(token);
+        
+        // Store minimal user data in sessionStorage (non-sensitive)
+        sessionStorage.setItem('kotweb_user', JSON.stringify({
+          username: username,
           district: district,
-          school: school,
-          class: studentClass
-        });
+          class: studentClass,
+          school: school
+        }));
+        
+        sessionStorage.setItem('kotweb_auth_timestamp', Date.now().toString());
 
         // Redirect to home page
         window.location.href = "home.html";
       } catch (error) {
         console.error("Error creating user:", error);
-        alert("Signup failed: " + error.message);
+        let errorMessage = "Signup failed. Please try again.";
+        
+        if (error.code === 'auth/email-already-in-use') {
+          errorMessage = "This phone number is already registered. Please login instead.";
+        } else if (error.code === 'auth/weak-password') {
+          errorMessage = "Password is too weak. Please use a stronger password.";
+        }
+        
+        alert(errorMessage);
         
         // Restore button state
         submitBtn.textContent = originalText;
@@ -583,24 +590,41 @@
         if (userDoc.exists()) {
           const userData = userDoc.data();
           
-          // Save user data to local storage
-          saveUserToLocalStorage({
+          // Generate a simple JWT-like token (in a real app, this would come from your backend)
+          const token = btoa(JSON.stringify({
             uid: user.uid,
-            firstName: userData.firstName,
-            lastName: userData.lastName,
             username: userData.username,
-            phone: userData.phone,
+            email: email,
+            exp: Date.now() + (7 * 24 * 60 * 60 * 1000) // 7 days from now
+          }));
+          
+          // Set HTTP-only cookie with the token
+          setAuthCookie(token);
+          
+          // Store minimal user data in sessionStorage (non-sensitive)
+          sessionStorage.setItem('kotweb_user', JSON.stringify({
+            username: userData.username,
             district: userData.district,
-            school: userData.school,
-            class: userData.class
-          });
+            class: userData.class,
+            school: userData.school
+          }));
+          
+          sessionStorage.setItem('kotweb_auth_timestamp', Date.now().toString());
         }
         
         // Login successful, redirect to home
         window.location.href = "home.html";
       } catch (error) {
         console.error("Login error:", error);
-        document.getElementById('login-msg').textContent = "Login failed: " + error.message;
+        let errorMessage = "Login failed. Please check your credentials.";
+        
+        if (error.code === 'auth/user-not-found') {
+          errorMessage = "No account found with this phone number. Please sign up first.";
+        } else if (error.code === 'auth/wrong-password') {
+          errorMessage = "Incorrect password. Please try again.";
+        }
+        
+        document.getElementById('login-msg').textContent = errorMessage;
         
         // Restore button state
         loginBtn.textContent = originalText;
@@ -622,31 +646,40 @@
 
     // Function to setup dropdown behavior
     function setupDropdown(searchInput, listElement, valueElement, items) {
+      // Add initial items to dropdown
+      updateDropdownList(items, listElement, valueElement, searchInput);
+      
       searchInput.addEventListener('focus', () => {
         listElement.style.display = 'block';
+        updateDropdownList(items, listElement, valueElement, searchInput);
       });
       
       searchInput.addEventListener('input', () => {
         const q = searchInput.value.toLowerCase();
-        listElement.style.display = 'block';
-        listElement.innerHTML = '';
-        
-        items.filter(d => d.toLowerCase().includes(q)).forEach(d => {
-          const el = document.createElement('div');
-          el.className = 'dropdown-item';
-          el.textContent = d;
-          el.addEventListener('click', () => {
-            valueElement.textContent = d;
-            searchInput.value = d;
-            listElement.style.display = 'none';
-          });
-          listElement.appendChild(el);
-        });
-        
-        if (listElement.innerHTML === '') {
-          listElement.innerHTML = '<div class="dropdown-item">No results</div>';
-        }
+        const filteredItems = items.filter(d => d.toLowerCase().includes(q));
+        updateDropdownList(filteredItems, listElement, valueElement, searchInput);
       });
+    }
+
+    // Helper function to update dropdown list
+    function updateDropdownList(items, listElement, valueElement, searchInput) {
+      listElement.innerHTML = '';
+      
+      items.forEach(d => {
+        const el = document.createElement('div');
+        el.className = 'dropdown-item';
+        el.textContent = d;
+        el.addEventListener('click', () => {
+          valueElement.textContent = d;
+          searchInput.value = d;
+          listElement.style.display = 'none';
+        });
+        listElement.appendChild(el);
+      });
+      
+      if (listElement.innerHTML === '') {
+        listElement.innerHTML = '<div class="dropdown-item">No results</div>';
+      }
     }
 
     // Setup both dropdowns
@@ -687,11 +720,9 @@
       if (!username) return;
       
       try {
-        const usersRef = collection(db, "users");
-        const q = query(usersRef, where("username", "==", username));
-        const querySnapshot = await getDocs(q);
-        
-        if (!querySnapshot.empty) {
+        // Check if username contains inappropriate words
+        const inappropriateWords = ['admin', 'test', 'system', 'moderator'];
+        if (inappropriateWords.some(word => username.toLowerCase().includes(word))) {
           const ue = document.getElementById('username-err');
           ue.style.display = 'block';
           ue.textContent = 'This username is not available.';
