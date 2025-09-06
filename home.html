@@ -1,177 +1,720 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Kotweb — Home</title>
-  <style>
-    :root {
-      --bg: #000000;
-      --orange: #ff7a00;
-      --white: #ffffff;
-      --muted: #bfbfbf;
-      --glass: rgba(255,255,255,0.03);
-      font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kotweb - Home</title>
+    <style>
+        :root {
+            --bg: #000000;
+            --orange: #ff7a00;
+            --white: #ffffff;
+            --muted: #bfbfbf;
+            --error: #ff3333;
+            --success: #00cc66;
+            --glass: rgba(255,255,255,0.03);
+            --chat-received: #1a1a1a;
+            --chat-sent: #262626;
+            font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+        }
 
-    * { box-sizing: border-box; border-radius: 0 !important; }
-    html, body { height: 100%; margin: 0; }
-    body { background: var(--bg); color: var(--white); display: flex; align-items: center; justify-content: center; padding: 24px; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
 
-    .container { width: 100%; max-width: 1080px; background: var(--glass); border: 1px solid rgba(255,255,255,0.04); padding: 24px; }
-    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
-    .logo { font-weight: 700; font-size: 28px; color: var(--orange); letter-spacing: 0.6px; }
-    .btn { display: inline-block; padding: 12px 16px; background: var(--orange); color: #000; border: none; cursor: pointer; font-weight: 700; font-size: 16px; }
-    .btn.ghost { background: transparent; border: 1px solid rgba(255,255,255,0.06); color: var(--white); }
-    .user-info { background: rgba(255,255,255,0.02); padding: 16px; border: 1px solid rgba(255,255,255,0.04); }
-    .user-info p { margin: 8px 0; font-size: 16px; }
-    .user-info p span { color: var(--muted); font-size: 14px; }
-    .error { color: #ff3333; font-size: 14px; margin-top: 12px; }
-    .spinner {
-      width: 20px;
-      height: 20px;
-      border: 2px solid rgba(255,255,255,0.3);
-      border-top: 2px solid var(--orange);
-      display: inline-block;
-      animation: spin 1s linear infinite;
-    }
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
+        body {
+            background: var(--bg);
+            color: var(--white);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
 
-    @media (max-width: 900px) {
-      body { padding: 12px; }
-      .container { padding: 16px; }
-      .user-info { padding: 12px; }
-      .btn { padding: 14px 18px; font-size: 16px; }
-    }
-  </style>
+        /* Header Styles */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            background: rgba(0, 0, 0, 0.8);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .system-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .current-system {
+            font-size: 14px;
+            color: var(--muted);
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .username {
+            font-size: 14px;
+            color: var(--muted);
+        }
+
+        .header-icons {
+            display: flex;
+            gap: 12px;
+        }
+
+        .icon-btn {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            color: var(--white);
+            cursor: pointer;
+        }
+
+        .icon-btn:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        /* Main Chat Area */
+        main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .chat-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        /* Message Styles */
+        .message {
+            max-width: 80%;
+            padding: 12px;
+            position: relative;
+        }
+
+        .message.received {
+            align-self: flex-start;
+            background: var(--chat-received);
+            border-left: 3px solid var(--orange);
+        }
+
+        .message.sent {
+            align-self: flex-end;
+            background: var(--chat-sent);
+            border-right: 3px solid var(--orange);
+        }
+
+        .message-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 6px;
+        }
+
+        .message-sender {
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .message-time {
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .message-content {
+            font-size: 15px;
+            line-height: 1.4;
+        }
+
+        .message-image {
+            max-width: 100%;
+            margin-top: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .violation {
+            filter: blur(5px);
+            color: var(--error);
+            position: relative;
+        }
+
+        .violation-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: var(--error);
+            font-weight: bold;
+            z-index: 10;
+        }
+
+        .message-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 8px;
+            font-size: 12px;
+        }
+
+        .action-btn {
+            color: var(--muted);
+            cursor: pointer;
+        }
+
+        .action-btn:hover {
+            color: var(--white);
+        }
+
+        /* Input Area */
+        .input-area {
+            padding: 16px;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        .message-input-container {
+            display: flex;
+            gap: 10px;
+        }
+
+        .message-input {
+            flex: 1;
+            padding: 12px 16px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            color: var(--white);
+            resize: none;
+            min-height: 44px;
+            max-height: 120px;
+            font-family: inherit;
+            font-size: 15px;
+            border-radius: 22px;
+        }
+
+        .message-input:focus {
+            outline: none;
+            border-color: var(--orange);
+        }
+
+        .send-btn {
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--orange);
+            color: #000;
+            border: none;
+            cursor: pointer;
+            border-radius: 50%;
+        }
+
+        .upload-btn {
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            color: var(--white);
+            cursor: pointer;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 12px 16px;
+            background: var(--success);
+            color: #000;
+            font-weight: 700;
+            z-index: 1000;
+            display: none;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .username {
+                display: none;
+            }
+            
+            .message {
+                max-width: 90%;
+            }
+        }
+    </style>
 </head>
 <body>
-  <div class="container">
-    <div class="header">
-      <div class="logo">KOTWEB</div>
-      <button class="btn ghost" id="logout-btn">Logout</button>
+    <header>
+        <div class="system-info">
+            <div class="current-system" id="current-system">In Gasabo > Senior 4</div>
+        </div>
+        <div class="header-right">
+            <div class="username" id="username-display">john_doe</div>
+            <div class="header-icons">
+                <button class="icon-btn" onclick="openPage('status.html')" title="Status">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" stroke-width="2"/>
+                        <path d="M12 6V12L16 14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                </button>
+                <button class="icon-btn" onclick="openPage('search.html')" title="Search">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M21 21L15 15M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 极狐 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                </button>
+                <button class="icon-btn" onclick="openPage('terms.html')" title="Read">
+                    <svg width="18" height="18" viewBox="0 极狐 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 6.25278V19.2528M12 6.25278C10.8321 5.47686 9.24649 5 7.5 5C5.75351 5 4.16789 5.47686 3 6.25278V19.2528C4.16789 18.4769 5.75351 18 7.5 18C9.24649 18 10.8321 18.4769 12 19.2528M12 极狐 6.25278C13.1679 5.47686 14.7535 5 16.5 5C18.2465 5 19.8321 5.47686 21 6.25278V19.2528C19.8321 18.4769 18.极狐 5 18 16.5 18C14.7535 18 13.1679 18.4769 12 19.2528" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+                <button class="icon-btn" onclick="openPage('settings.html')" title="Settings">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 15C13.6569 15 15 13.6569 15 极狐 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M19.4 15C19.2669 15.3 19.2 15.6 19.2 16.2C19.2 17.1 19.8 18 20.7 18.3C21.6 18.6 22.2 19.5 21.9 20.4C21.6 21.3 20.7 21.9 19.8 21.6C18.9 21.3 18.3 20.4 18.6 19.5C18.7 19.2 18.8 18.9 19.1 18.6" stroke="currentColor" stroke-width="2" stroke极狐 cap="round" stroke-linejoin="round"/>
+                        <path d="M2.1 20.4C2.4 19.5 3 18.6 3.9 18.3C4.8 18 5.4 17.1 5.1 16.2C4.8 15.3 3.9 14.7 3 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M5.1 7.8C5.4 6.9 6 6 6.9 5.7C7.8 5.4 8.4 4.5 8.1 3.6C7.8 2.7 6.9 2.1 6 2.4C5.1 2.7 4.5 3.6 极狐 4.8 4.5C4.9 4.8 5 5.1 5.3 极狐 5.4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M19.4 9C19.1 8.1 18.5 7.2 17.6 6.9C16.7 6.6 16.1 5.7 16.4 4.8极狐 C16.7 3.9 17.6 3.3 18.5 3.6C19.4 3.9 20 4.8 19.7 5.7C19.6 6 19.5 6.3 19.2 6.6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+                <button class="icon-btn" id="menu-btn" title="Menu">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M4 6H20M4 12H20M4 18H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="chat-container" id="chat-container">
+            <!-- Messages will be dynamically inserted here -->
+            <div class="message received">
+                <div class="message-header">
+                    <span class="message-sender">System</span>
+                    <span class="message-time">Today, 10:30 AM</span>
+                </div>
+                <div class="message-content">
+                    Welcome to Kotweb! This is the public chat for Senior 4 students in Gasabo district.
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div class="input-area">
+        <div class="message-input-container">
+            <textarea class="message-input" id="message-input" placeholder="Type your message..." rows="1"></textarea>
+            <button class="upload-btn" id="upload-btn" title="Upload image">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M4 16L4 17C4 18.6569 5.34315 20 7 20L17 20C18.6569 20 20 18.6569 20 17L20 16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    <path d="M12 4L12 16M12 4L8 8M12 极狐 4L16 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </button>
+            <button class="send-btn"极狐 id="send-btn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="极狐 http://www.w3.org/2000/svg">
+                    <path d="M22 2L11 13M22 2L15 22L11 13L2 9L22 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </button>
+        </div>
     </div>
-    <div class="user-info" id="user-info">
-      <p><span>Name:</span> <span id="user-name">Loading...</span></p>
-      <p><span>Username:</span> <span id="user-username">Loading...</span></p>
-      <p><span>Phone:</span> <span id="user-phone">Loading...</span></p>
-      <p><span>District:</span> <span id="user-district">Loading...</span></p>
-      <p><span>School:</span> <span id="user-school">Loading...</span></p>
-      <p><span>Class:</span> <span id="user-class">Loading...</span></p>
+
+    <div class="notification" id="notification">
+        New message received
     </div>
-    <div id="error-msg" class="error" style="display: none;"></div>
-  </div>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    <audio id="message-sound" preload="auto">
+        <source src="message.mp3" type="audio/mpeg">
+    </audio>
 
-    // Firebase configuration (same as in index.html)
-    const firebaseConfig = {
-      apiKey: "AIzaSyB1FG7OAGIgJqg3bmpStVTpi0RqpI_DctE",
-      authDomain: "music-app-718f4.firebaseapp.com",
-      databaseURL: "https://music-app-718f4-default-rtdb.firebaseio.com",
-      projectId: "music-app-718f4",
-      storageBucket: "music-app-718f4.firebasestorage.app",
-      messagingSenderId: "91683197015",
-      appId: "1:91683197015:web:92899ecb0c913dc0a95312",
-      measurementId: "G-MQLRPLZZFF"
-    };
+    <script type="module">
+        // Import Firebase modules
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
-    // Initialize Firebase
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyB1FG7OAGIgJqg3bmpStVTpi0极狐 RqpI_DctE",
+            authDomain: "music-app-718f4.firebaseapp.com",
+            databaseURL: "https://music-app-718f4-default-rtdb.firebaseio.com",
+            projectId: "music-app-718f4",
+            storageBucket: "music-app-718f4.firebasestorage.app",
+            messagingSenderId: "91683197015",
+            appId: "1:91683197015:web:92899ecb0c913dc0a95312",
+            measurementId: "G-MQLRPLZZFF"
+        };
 
-    // Elements
-    const userInfo = document.getElementById('user-info');
-    const errorMsg = document.getElementById('error-msg');
-    const logoutBtn = document.getElementById('logout-btn');
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const storage = getStorage(app);
 
-    // Check authentication state
-    onAuthStateChanged(auth, async (user) => {
-      if (!user) {
-        // No user is signed in, redirect to login page
-        window.location.href = "index.html";
-        return;
-      }
+        // DOM elements
+        const chatContainer = document.getElementById('chat-container');
+        const messageInput = document.getElementById('message-input');
+        const sendBtn = document.getElementById('send-btn');
+        const uploadBtn = document.getElementById('upload-btn');
+        const usernameDisplay = document.getElementById('username-display');
+        const currentSystem = document.getElementById('current-system');
+        const notification = document.getElementById('notification');
+        const messageSound = document.getElementById('message-sound');
+        const menuBtn = document.getElementById('menu-btn');
 
-      // Show loading state
-      userInfo.innerHTML = '<div class="spinner"></div>';
+        // User data and current chat info
+        let userData = null;
+        let currentChatPath = null;
+        let unsubscribeMessages = null;
 
-      try {
-        // Try to get user data from local storage first
-        const userData = JSON.parse(localStorage.getItem('kotweb_user'));
+        // Inappropriate words filter
+        const inappropriateWords = ['fuck', 'shit', 'asshole', 'bitch', 'cunt', 'nigger', 'retard', 'hacking', 'hack', 'cheat', 'crack'];
 
-        if (userData && userData.uid === user.uid) {
-          // Use local storage data if available and matches current user
-          displayUserData(userData);
-        } else {
-          // Fallback to Firestore
-          const userDoc = await getDoc(doc(db, "users", user.uid));
-          if (userDoc.exists()) {
-            const data = userDoc.data();
-            const userData = {
-              uid: user.uid,
-              firstName: data.firstName,
-              lastName: data.lastName,
-              username: data.username,
-              phone: data.phone,
-              district: data.district,
-              school: data.school,
-              class: data.class
-            };
-            // Save to local storage for future use
-            localStorage.setItem('kotweb_user', JSON.stringify(userData));
-            localStorage.setItem('kotweb_auth_timestamp', new Date().getTime());
-            displayUserData(userData);
-          } else {
-            throw new Error("User data not found in Firestore.");
-          }
+        // Check authentication status
+        function checkAuth() {
+            // Check for auth cookie
+            const cookies = document.cookie.split(';');
+            const tokenCookie = cookies.find(cookie => cookie.trim().startsWith('kotweb_token='));
+            
+            if (!tokenCookie) {
+                window.location.href = "index.html";
+                return false;
+            }
+            
+            // Check if user data exists in sessionStorage
+            const userDataStr = sessionStorage.getItem('kotweb_user');
+            if (!userDataStr) {
+                window.location.href = "index.html";
+                return false;
+            }
+            
+            try {
+                userData = JSON.parse(userDataStr);
+                usernameDisplay.textContent = userData.username;
+                return true;
+            } catch (e) {
+                window.location.href = "index.html";
+                return false;
+            }
         }
-      } catch (error) {
-        console.error("Error loading user data:", error);
-        errorMsg.style.display = 'block';
-        errorMsg.textContent = "Error loading user data: " + error.message;
-        userInfo.innerHTML = '<p>User data could not be loaded.</p>';
-      }
-    });
 
-    // Function to display user data
-    function displayUserData(userData) {
-      document.getElementById('user-name').textContent = `${userData.firstName} ${userData.lastName}`;
-      document.getElementById('user-username').textContent = userData.username;
-      document.getElementById('user-phone').textContent = userData.phone;
-      document.getElementById('user-district').textContent = userData.district;
-      document.getElementById('user-school').textContent = userData.school;
-      document.getElementById('user-class').textContent = userData.class;
-    }
+        // Check if user is authenticated
+        if (!checkAuth()) {
+            // Redirect will happen automatically
+        } else {
+            // Set up the chat based on user's district and class
+            setupChat(userData.district, userData.class);
+        }
 
-    // Logout functionality
-    logoutBtn.addEventListener('click', async () => {
-      try {
-        const originalText = logoutBtn.textContent;
-        logoutBtn.innerHTML = '<div class="spinner"></div>';
-        logoutBtn.disabled = true;
+        // Set up the chat based on district and class
+        function setupChat(district, studentClass) {
+            // Update the current system display
+            currentSystem.textContent = `In ${district} > ${studentClass}`;
+            
+            // Set the chat path: Rwanda > Class > District
+            currentChatPath = `Rwanda/${studentClass}/${district}`;
+            
+            // Clear existing messages
+            chatContainer.innerHTML = '';
+            
+            // Load existing messages
+            loadMessages();
+        }
 
-        await signOut(auth);
-        // Clear local storage
-        localStorage.removeItem('kotweb_user');
-        localStorage.removeItem('kotweb_auth_timestamp');
-        // Redirect to login page
-        window.location.href = "index.html";
-      } catch (error) {
-        console.error("Logout error:", error);
-        errorMsg.style.display = 'block';
-        errorMsg.textContent = "Logout failed: " + error.message;
-        logoutBtn.textContent = originalText;
-        logoutBtn.disabled = false;
-      }
-    });
-  </script>
+        // Load messages from Firestore
+        function loadMessages() {
+            // Unsubscribe from previous listener if exists
+            if (unsubscribeMessages) {
+                unsubscribeMessages();
+            }
+            
+            const messagesRef = collection(db, currentChatPath);
+            const q = query(messagesRef, orderBy('timestamp', 'asc'));
+            
+            unsubscribeMessages = onSnapshot(q, (snapshot) => {
+                snapshot.docChanges().forEach((change) => {
+                    if (change.type === 'added') {
+                        const message = change.doc.data();
+                        addMessageToChat(
+                            change.doc.id,
+                            message.senderId,
+                            message.senderName,
+                            message.text,
+                            message.imageUrl,
+                            message.timestamp.toDate(),
+                            message.senderId === auth.currentUser.uid
+                        );
+                        
+                        // Play sound if message is from another user
+                        if (message.senderId !== auth.currentUser.uid) {
+                            playMessageSound();
+                            showNotification(`New message from ${message.senderName}`);
+                        }
+                    } else if (change.type === 'modified') {
+                        // Update edited message
+                        const message = change.doc.data();
+                        updateMessageInChat(change.doc.id, message.text);
+                    } else if (change.type === 'removed') {
+                        // Remove deleted message
+                        removeMessageFromChat(change.doc.id);
+                    }
+                });
+                
+                // Scroll to bottom
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }, (error) => {
+                console.error("Error loading messages:", error);
+            });
+        }
+
+        // Add message to chat UI
+        function addMessageToChat(id, senderId, senderName, text, imageUrl, timestamp, isSent) {
+            const messageEl = document.createElement('div');
+            messageEl.classList.add('message');
+            message极狐.classList.add(isSent ? 'sent' : 'received');
+            messageEl.dataset.id = id;
+            
+            // Format time
+            const timeString = formatTime(timestamp);
+            
+            // Check for inappropriate content
+            const hasInappropriateContent = checkForInappropriateContent(text);
+            
+            messageEl.innerHTML = `
+                <div class="message-header">
+                    <span class="message-sender">${isSent ? 'You' : senderName}</span>
+                    <span class="message-time">${timeString}</span>
+                </div>
+                <div class="message-content ${hasInappropriateContent ? 'violation' : ''}">
+                    ${hasInappropriateContent ? '<span class="violation-text">Violation</span>' : ''}
+                    ${text}
+                    ${imageUrl ? `<img src="${imageUrl}" class="message-image" alt="Sent image">` : ''}
+                </div>
+                ${isSent ? `
+                <div class="message-actions">
+                    <span class="action-btn" onclick="editMessage('${id}')">Edit</span>
+                    <span class="action-btn" onclick="deleteMessage('${id}')">Delete</span>
+                </div>
+                ` : ''}
+            `;
+            
+            chatContainer.appendChild(messageEl);
+            
+            // Scroll to bottom
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        // Update message in chat UI
+        function updateMessageInChat(messageId, newText) {
+            const messageEl = chatContainer.querySelector(`[data-id="${messageId}"]`);
+            if (messageEl) {
+                const contentEl = messageEl.querySelector('.message-content');
+                const hasInappropriateContent = checkForInappropriateContent(newText);
+                
+                contentEl.innerHTML = `
+                    ${hasInappropriateContent ? '<span class="violation-text">Violation</span>' : ''}
+                    ${newText}
+                `;
+                
+                if (hasInappropriateContent) {
+                    contentEl.classList.add('violation');
+                } else {
+                    contentEl.classList.remove('violation');
+                }
+            }
+        }
+
+        // Remove message from chat UI
+        function removeMessageFromChat(messageId) {
+            const messageEl = chatContainer.querySelector(`极狐 [data-id="${messageId}"]`);
+            if (messageEl) {
+                messageEl.remove();
+            }
+        }
+
+        // Check for inappropriate content
+        function checkForInappropriateContent(text) {
+            if (!text) return false;
+            const lowerText = text.toLowerCase();
+            return inappropriateWords.some(word => lowerText.includes(word));
+        }
+
+        // Format time for display
+        function formatTime(date) {
+            const now = new Date();
+            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            const messageDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+            
+            const diffTime = Math.abs(now - date);
+            const diffMinutes = Math.floor(diffTime / (1000 * 60));
+            const diffHours = Math.floor(diffTime / (1000 * 60 * 60));
+            
+            if (diffMinutes < 1) {
+                return 'Just now';
+            } else if (diffMinutes < 60) {
+                return `${diffMinutes} min ago`;
+            } else if (diffHours < 24 && messageDate.getTime() === today.getTime()) {
+                return `Today, ${date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
+            } else if (diffHours < 48) {
+                return `Yesterday, ${date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
+            } else {
+                return `${date.toLocaleDateString()}, ${date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
+            }
+        }
+
+        // Send message
+        async function sendMessage() {
+            const text = messageInput.value.trim();
+            if (!text && !currentImage) return;
+            
+            try {
+                let imageUrl = null;
+                
+                // Upload image if exists
+                if (currentImage) {
+                    const storageRef = ref(storage, `chat-images/${Date.now()}_${currentImage.name}`);
+                    await uploadBytes(storageRef, currentImage);
+                    imageUrl = await getDownloadURL(storageRef);
+                    currentImage = null;
+                }
+                
+                // Add message to Firestore
+                await addDoc(collection(db, currentChatPath), {
+                    text: text,
+                    imageUrl: imageUrl,
+                    senderId: auth.currentUser.uid,
+                    senderName: userData.username,
+                    timestamp: serverTimestamp()
+                });
+                
+                // Clear input
+                messageInput.value = '';
+                messageInput.style.height = 'auto';
+            } catch (error) {
+                console.error("Error sending message:", error);
+                alert("Failed to send message. Please try again.");
+            }
+        }
+
+        // Edit message
+        async function editMessage(messageId) {
+            const messageRef = doc(db, currentChatPath, messageId);
+            const messageDoc = await getDoc(messageRef);
+            
+            if (messageDoc.exists()) {
+                const messageData = messageDoc.data();
+                const newText = prompt("Edit your message:", messageData.text);
+                
+                if (newText !== null) {
+                    try {
+                        await updateDoc(messageRef, {
+                            text: newText,
+                            edited: true
+                        });
+                    } catch (error) {
+                        console.error("Error editing message:", error);
+                    }
+                }
+            }
+        }
+
+        // Delete message
+        async function deleteMessage(messageId) {
+            if (confirm("Are you sure you want to delete this message?")) {
+                try {
+                    const messageRef = doc(db, currentChatPath, messageId);
+                    await deleteDoc(messageRef);
+                } catch (error) {
+                    console.error("Error deleting message:", error);
+                }
+            }
+        }
+
+        // Play message sound
+        function playMessageSound() {
+            if (messageSound) {
+                messageSound.currentTime = 0;
+                messageSound.play().catch(error => {
+                    console.log("Audio play failed:", error);
+                });
+            }
+        }
+
+        // Show notification
+        function showNotification(text) {
+            notification.textContent = text;
+            notification.style.display = 'block';
+            
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 3000);
+        }
+
+        // Auto-resize textarea
+        messageInput.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
+        });
+
+        // Send message on Enter key (but allow Shift+Enter for new line)
+        messageInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        // Send button click
+        sendBtn.addEventListener('click', sendMessage);
+
+        // Image upload
+        let currentImage = null;
+        uploadBtn.addEventListener('click', function() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'image/*';
+            
+            input.onchange = function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    currentImage = file;
+                    showNotification("Image selected. Press send to share.");
+                }
+            };
+            
+            input.click();
+        });
+
+        // Menu button click - show system info
+        menuBtn.addEventListener('click', function() {
+            alert(`You are currently in:\nDistrict: ${userData.district}\nClass: ${userData.class}\nSchool: ${userData.school}`);
+        });
+
+        // Open other pages
+        window.openPage = function(page) {
+            window.location.href = page;
+        };
+
+        // Make functions available globally for HTML onclick handlers
+        window.editMessage = editMessage;
+        window.deleteMessage = deleteMessage;
+
+    </script>
 </body>
 </html>
