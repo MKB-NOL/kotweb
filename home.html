@@ -48,6 +48,14 @@
             gap: 10px;
         }
 
+        .system-indicator {
+            padding: 6px 10px;
+            background: var(--orange);
+            color: #000;
+            font-weight: 700;
+            font-size: 12px;
+        }
+
         .current-system {
             font-size: 14px;
             color: var(--muted);
@@ -263,6 +271,7 @@
 <body>
     <header>
         <div class="system-info">
+            <div class="system-indicator">SYSTEM</div>
             <div class="current-system" id="current-system">In Gasabo > Senior 4</div>
         </div>
         <div class="header-right">
@@ -289,13 +298,15 @@
                         <path d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                         <path d="M19.4 15C19.2669 15.3 19.2 15.6 19.2 16.2C19.2 17.1 19.8 18 20.7 18.3C21.6 18.6 22.2 19.5 21.9 20.4C21.6 21.3 20.7 21.9 19.8 21.6C18.9 21.3 18.3 20.4 18.6 19.5C18.7 19.2 18.8 18.9 19.1 18.6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                         <path d="M2.1 20.4C2.4 19.5 3 18.6 3.9 18.3C4.8 18 5.4 17.1 5.1 16.2C4.8 15.3 3.9 14.7 3 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M5.1 7.8C5.4 6.9 6 6 6.9 5.7C7.8 5.4 8.4 4.5 8.1 3.6C7.8 2.7 6.9 2.1 6 2.4C5.1 2.7 4.5 3.6 4.8 4.5C4.9 4.8 5 5.1 5.3 5.4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M5.1 7.8C5.4 6.9 6 6 6.9 5.7C7.8 5.4 8.4 4.5 8.1 3.6C7.8 2.7 6.9 2.1 6 2.4C5.1 2.7 4.5 3.6 4.8 4.5C4.9 4.8 5.0 5.1 5.3 5.4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                         <path d="M19.4 9C19.1 8.1 18.5 7.2 17.6 6.9C16.7 6.6 16.1 5.7 16.4 4.8C16.7 3.9 17.6 3.3 18.5 3.6C19.4 3.9 20 4.8 19.7 5.7C19.6 6 19.5 6.3 19.2 6.6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
                 </button>
-                <button class="icon-btn" id="menu-btn" title="Menu">
+                <button class="icon-btn" id="logout-btn" title="Logout">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M4 6H20M4 12H20M4 18H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M9 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M16 17L21 12L16 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M21 12H9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
                 </button>
             </div>
@@ -344,25 +355,28 @@
 
     <script type="module">
         // Import Firebase modules
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
-  // Firebase configuration
-  const firebaseConfig = {
-    apiKey: "AIzaSyB1FG7OAGIgJqg3bmpStVTpi0RqpI_DctE",
-    authDomain: "music-app-718f4.firebaseapp.com",
-    databaseURL: "https://music-app-718f4-default-rtdb.firebaseio.com",
-    projectId: "music-app-718f4",
-    storageBucket: "music-app-718f4.firebasestorage.app",
-    messagingSenderId: "91683197015",
-    appId: "1:91683197015:web:92899ecb0c913dc0a95312",
-    measurementId: "G-MQLRPLZZFF"
-  };
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyB1FG7OAGIgJqg3bmpStVTpi0RqpI_DctE",
+            authDomain: "music-app-718f4.firebaseapp.com",
+            databaseURL: "https://music-app-718f4-default-rtdb.firebaseio.com",
+            projectId: "music-app-718f4",
+            storageBucket: "music-app-718f4.firebasestorage.app",
+            messagingSenderId: "91683197015",
+            appId: "1:91683197015:web:92899ecb0c913dc0a95312",
+            measurementId: "G-MQLRPLZZFF"
+        };
 
-  // Initialize Firebase
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const storage = getStorage(app);
 
         // DOM elements
         const chatContainer = document.getElementById('chat-container');
@@ -373,29 +387,54 @@
         const currentSystem = document.getElementById('current-system');
         const notification = document.getElementById('notification');
         const messageSound = document.getElementById('message-sound');
-        const menuBtn = document.getElementById('menu-btn');
+        const logoutBtn = document.getElementById('logout-btn');
 
         // User data and current chat info
         let userData = null;
         let currentChatPath = null;
-        let unsubscribeMessages = null;
 
         // Inappropriate words filter
         const inappropriateWords = ['fuck', 'shit', 'asshole', 'bitch', 'cunt', 'nigger', 'retard', 'hacking', 'hack', 'cheat', 'crack'];
 
-       // Check if user is authenticated
-  onAuthStateChanged(auth, (user) => {
-    if (!user) {
-      // User is not signed in, redirect to login
-      window.location.href = "index.html";
-    } else {
-      // User is signed in, check if user data exists in localStorage
-      const userData = localStorage.getItem('kotweb_user');
-      if (!userData) {
-        window.location.href = "index.html";
-      }
-    }
-  });
+        // Check if user is logged in
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                // User is signed in
+                try {
+                    // Get user data from localStorage
+                    const userDataStr = localStorage.getItem('kotweb_user');
+                    if (userDataStr) {
+                        userData = JSON.parse(userDataStr);
+                        usernameDisplay.textContent = userData.username;
+                        
+                        // Set up the chat based on user's district and class
+                        setupChat(userData.district, userData.class);
+                    } else {
+                        // Redirect to login if no user data
+                        window.location.href = 'index.html';
+                    }
+                } catch (error) {
+                    console.error("Error getting user data:", error);
+                    window.location.href = 'index.html';
+                }
+            } else {
+                // User is signed out, redirect to login
+                window.location.href = 'index.html';
+            }
+        });
+
+        // Logout functionality
+        logoutBtn.addEventListener('click', async () => {
+            try {
+                await signOut(auth);
+                localStorage.removeItem('kotweb_user');
+                localStorage.removeItem('kotweb_auth_timestamp');
+                window.location.href = 'index.html';
+            } catch (error) {
+                console.error("Error signing out:", error);
+            }
+        });
+
         // Set up the chat based on district and class
         function setupChat(district, studentClass) {
             // Update the current system display
@@ -404,8 +443,11 @@
             // Set the chat path: Rwanda > Class > District
             currentChatPath = `Rwanda/${studentClass}/${district}`;
             
-            // Clear existing messages
-            chatContainer.innerHTML = '';
+            // Clear existing messages except the system welcome message
+            const messages = chatContainer.querySelectorAll('.message');
+            messages.forEach((msg, index) => {
+                if (index > 0) msg.remove(); // Keep only the first message (system welcome)
+            });
             
             // Load existing messages
             loadMessages();
@@ -413,47 +455,53 @@
 
         // Load messages from Firestore
         function loadMessages() {
-            // Unsubscribe from previous listener if exists
-            if (unsubscribeMessages) {
-                unsubscribeMessages();
-            }
-            
             const messagesRef = collection(db, currentChatPath);
             const q = query(messagesRef, orderBy('timestamp', 'asc'));
             
-            unsubscribeMessages = onSnapshot(q, (snapshot) => {
+            onSnapshot(q, (snapshot) => {
                 snapshot.docChanges().forEach((change) => {
                     if (change.type === 'added') {
                         const message = change.doc.data();
-                        addMessageToChat(
-                            change.doc.id,
-                            message.senderId,
-                            message.senderName,
-                            message.text,
-                            message.imageUrl,
-                            message.timestamp.toDate(),
-                            message.senderId === auth.currentUser.uid
-                        );
-                        
-                        // Play sound if message is from another user
-                        if (message.senderId !== auth.currentUser.uid) {
-                            playMessageSound();
-                            showNotification(`New message from ${message.senderName}`);
+                        // Check if message already exists in DOM
+                        if (!document.querySelector(`.message[data-id="${change.doc.id}"]`)) {
+                            addMessageToChat(
+                                change.doc.id,
+                                message.senderId,
+                                message.senderName,
+                                message.text,
+                                message.imageUrl,
+                                message.timestamp.toDate(),
+                                message.senderId === auth.currentUser.uid
+                            );
+                            
+                            // Play sound if message is from another user
+                            if (message.senderId !== auth.currentUser.uid) {
+                                playMessageSound();
+                                showNotification(`New message from ${message.senderName}`);
+                            }
                         }
                     } else if (change.type === 'modified') {
-                        // Update edited message
+                        // Update existing message
                         const message = change.doc.data();
-                        updateMessageInChat(change.doc.id, message.text);
+                        const messageEl = document.querySelector(`.message[data-id="${change.doc.id}"]`);
+                        if (messageEl) {
+                            const contentEl = messageEl.querySelector('.message-content');
+                            contentEl.innerHTML = message.text;
+                            if (message.imageUrl) {
+                                contentEl.innerHTML += `<img src="${message.imageUrl}" class="message-image" alt="Sent image">`;
+                            }
+                        }
                     } else if (change.type === 'removed') {
-                        // Remove deleted message
-                        removeMessageFromChat(change.doc.id);
+                        // Remove message from DOM
+                        const messageEl = document.querySelector(`.message[data-id="${change.doc.id}"]`);
+                        if (messageEl) {
+                            messageEl.remove();
+                        }
                     }
                 });
                 
                 // Scroll to bottom
                 chatContainer.scrollTop = chatContainer.scrollHeight;
-            }, (error) => {
-                console.error("Error loading messages:", error);
             });
         }
 
@@ -492,34 +540,6 @@
             
             // Scroll to bottom
             chatContainer.scrollTop = chatContainer.scrollHeight;
-        }
-
-        // Update message in chat UI
-        function updateMessageInChat(messageId, newText) {
-            const messageEl = chatContainer.querySelector(`[data-id="${messageId}"]`);
-            if (messageEl) {
-                const contentEl = messageEl.querySelector('.message-content');
-                const hasInappropriateContent = checkForInappropriateContent(newText);
-                
-                contentEl.innerHTML = `
-                    ${hasInappropriateContent ? '<span class="violation-text">Violation</span>' : ''}
-                    ${newText}
-                `;
-                
-                if (hasInappropriateContent) {
-                    contentEl.classList.add('violation');
-                } else {
-                    contentEl.classList.remove('violation');
-                }
-            }
-        }
-
-        // Remove message from chat UI
-        function removeMessageFromChat(messageId) {
-            const messageEl = chatContainer.querySelector(`[data-id="${messageId}"]`);
-            if (messageEl) {
-                messageEl.remove();
-            }
         }
 
         // Check for inappropriate content
@@ -675,11 +695,6 @@
             input.click();
         });
 
-        // Menu button click - show system info
-        menuBtn.addEventListener('click', function() {
-            alert(`You are currently in:\nDistrict: ${userData.district}\nClass: ${userData.class}\nSchool: ${userData.school}`);
-        });
-
         // Open other pages
         window.openPage = function(page) {
             window.location.href = page;
@@ -688,7 +703,6 @@
         // Make functions available globally for HTML onclick handlers
         window.editMessage = editMessage;
         window.deleteMessage = deleteMessage;
-
     </script>
 </body>
 </html>
