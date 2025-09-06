@@ -208,6 +208,7 @@
 
         .tab i {
             font-size: 18px;
+            margin-bottom: 4px;
         }
 
         .tab-label {
@@ -619,39 +620,39 @@
 
         // Handle search input
         function handleSearch(e) {
-            const query = e.target.value.trim().toLowerCase();
+            const searchTerm = e.target.value.trim().toLowerCase();
             
             // Clear previous timeout
             if (searchTimeout) {
                 clearTimeout(searchTimeout);
             }
             
-            if (query.length < 2) {
+            if (searchTerm.length < 2) {
                 searchResultsDropdown.classList.remove('active');
                 return;
             }
             
             // Set timeout to avoid too many requests
             searchTimeout = setTimeout(() => {
-                searchUsers(query);
+                searchUsers(searchTerm);
             }, 300);
         }
 
         // Search users in Firebase
-        async function searchUsers(query) {
+        async function searchUsers(searchTerm) {
             try {
                 searchResultsList.innerHTML = '<div class="empty-state"><div class="loading"></div><p>Searching...</p></div>';
                 searchResultsDropdown.classList.add('active');
                 
                 // Query users collection for matching usernames
                 const usersRef = collection(db, "users");
-                const q = query(
+                const firebaseQuery = query(
                     usersRef, 
-                    where("username", ">=", query),
-                    where("username", "<=", query + "\uf8ff")
+                    where("username", ">=", searchTerm),
+                    where("username", "<=", searchTerm + "\uf8ff")
                 );
                 
-                const querySnapshot = await getDocs(q);
+                const querySnapshot = await getDocs(firebaseQuery);
                 
                 // Filter out current user
                 const results = [];
