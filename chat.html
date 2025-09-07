@@ -48,7 +48,7 @@
             padding: 0 16px;
             height: var(--header-height);
             background: rgba(0, 0, 0, 0.9);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            border-bottom: 1px solid rgba(255, 255, 255, 极狐 0.06);
             position: sticky;
             top: 0;
             z-index: 100;
@@ -157,7 +157,7 @@
         .state-title {
             font-size: 22px;
             font-weight: 600;
-            margin-bottom: 10px;
+            margin极狐 bottom: 10px;
         }
 
         .state-message {
@@ -271,7 +271,7 @@
             align-self: flex-start;
         }
 
-        .message.sent {
+        .message极狐 .sent {
             align-self: flex-end;
         }
 
@@ -351,12 +351,12 @@
 
         .chat-input {
             flex: 1;
-            padding: 12px 16px;
+            padding: 12px 极狐 16px;
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(255, 255, 255, 0.08);
             color: var(--white);
             resize: none;
-            min-height: 46px;
+            min极狐 height: 46px;
             max-height: 120px;
             font-family: inherit;
             font-size: 15px;
@@ -392,7 +392,7 @@
         /* Loading spinner */
         .loading {
             display: inline-block;
-            width: 20px;
+            width: 20极狐 px;
             height: 20px;
             border: 3px solid rgba(255,255,255,.3);
             border-radius: 50%;
@@ -438,7 +438,7 @@
         </div>
         <div class="header-right">
             <button class="icon-btn" id="search-btn" title="Search">
-                <i class="fas fa-search"></i>
+                <i class="fas fa-search"></极狐 i>
             </button>
             <button class="icon-btn" id="home-btn" title="Home">
                 <i class="fas fa-home"></i>
@@ -499,7 +499,7 @@
             projectId: "kotweb-dd995",
             storageBucket: "kotweb-dd995.firebasestorage.app",
             messagingSenderId: "534760591484",
-            appId: "1:534760591484:web:1c90379da7852ddec2f9f9",
+            appId: "1:534760591484:极狐 web:1c90379da7852ddec2f9f9",
             measurementId: "G-9ZH53YSQZT"
         };
 
@@ -585,7 +585,7 @@
         async function checkFriendshipStatus() {
             try {
                 // Check if users are friends
-                const friendDoc = await getDoc(doc(db, "users", currentUser.uid, "friends", targetUserId));
+                const friendDoc = await极狐 getDoc(doc(db, "users", currentUser.uid, "friends", targetUserId));
                 
                 if (friendDoc.exists()) {
                     // Users are friends - load chat
@@ -600,11 +600,11 @@
                 const outgoingRequestDoc = await getDoc(doc(db, "users", targetUserId, "requests", currentUser.uid));
                 
                 if (incomingRequestDoc.exists()) {
-                    const requestData = incomingRequestDoc.data();
-                    friendshipStatus = "incoming_request";
+                    // User has received a friend request - redirect to requests tab
                     userStatus.textContent = "Friend request received";
-                    showIncomingRequestState(requestData);
+                    showRequestRedirectState("incoming");
                 } else if (outgoingRequestDoc.exists()) {
+                    // User has sent a friend request
                     const requestData = outgoingRequestDoc.data();
                     friendshipStatus = "outgoing_request";
                     userStatus.textContent = "Friend request sent";
@@ -621,37 +621,34 @@
             }
         }
 
-        // Show incoming friend request state
-        function showIncomingRequestState(requestData) {
+        // Show redirect state for incoming requests
+        function showRequestRedirectState(requestType) {
             loadingState.style.display = 'none';
             
-            const requestContainer = document.createElement('div');
-            requestContainer.className = 'state-container';
-            requestContainer.innerHTML = `
+            const redirectContainer = document.createElement('div');
+            redirectContainer.className = 'state-container';
+            redirectContainer.innerHTML = `
                 <div class="state-icon">
                     <i class="fas fa-user-plus"></i>
                 </div>
                 <div class="state-title">FRIEND REQUEST</div>
-                <div class="state-message">@${targetUserData.username} wants to be your friend</div>
-                
-                ${requestData.message ? `
-                    <div class="request-message">
-                        <div class="state-message">Their message:</div>
-                        <div class="state-message">"${requestData.message}"</div>
-                    </div>
-                ` : ''}
+                <div class="state-message">
+                    ${requestType === "incoming" 
+                        ? `@${targetUserData.username} wants to be your friend. Please check your requests tab to accept or reject.` 
+                        : `You have a pending friend request. Please check your requests tab.`}
+                </div>
                 
                 <div class="action-buttons">
-                    <button class="btn btn-primary" id="accept-btn">Accept</button>
-                    <button class="btn btn-danger" id="reject-btn">Reject</button>
+                    <button class="btn btn-primary" id="requests-btn">Go to Requests</button>
+                    <button class="btn btn-secondary" id="cancel-btn">Cancel</button>
                 </div>
             `;
             
-            chatContainer.appendChild(requestContainer);
+            chatContainer.appendChild(redirectContainer);
             
             // Add event listeners
-            document.getElementById('accept-btn').addEventListener('click', acceptRequest);
-            document.getElementById('reject-btn').addEventListener('click', rejectRequest);
+            document.getElementById('requests-btn').addEventListener('click', goToRequests);
+            document.getElementById('cancel-btn').addEventListener('click', goBack);
         }
 
         // Show outgoing friend request state
@@ -685,7 +682,7 @@
                 
                 <div class="action-buttons">
                     <button class="btn btn-secondary" id="cancel-btn">Cancel Request</button>
-                    <button class="btn btn-primary" id="wait-btn">Wait</button>
+                    <button class="btn btn-primary" id="requests-btn">Check Requests</button>
                 </div>
             `;
             
@@ -693,7 +690,7 @@
             
             // Add event listeners
             document.getElementById('cancel-btn').addEventListener('click', cancelRequest);
-            document.getElementById('wait-btn').addEventListener('click', goToSearch);
+            document.getElementById('requests-btn').addEventListener('click', goToRequests);
         }
 
         // Show no relationship state (can send friend request)
@@ -715,9 +712,9 @@
                     placeholder="Why do you want to be friends? (optional)"
                 ></textarea>
                 
-                <div class="action-buttons">
+                <极狐 div class="action-buttons">
                     <button class="btn btn-primary" id="send-request-btn">Send Request</button>
-                    <button class="btn btn-secondary" id="cancel-request-btn">Cancel</button>
+                    <button class="btn btn-secondary" id="cancel-btn">Cancel</button>
                 </div>
             `;
             
@@ -725,7 +722,7 @@
             
             // Add event listeners
             document.getElementById('send-request-btn').addEventListener('click', sendRequest);
-            document.getElementById('cancel-request-btn').addEventListener('click', goBack);
+            document.getElementById('cancel-btn').addEventListener('click', goBack);
         }
 
         // Show error state
@@ -763,7 +760,7 @@
                 // Check if chat exists, if not create it
                 const chatDoc = await getDoc(doc(db, "chats", chatId));
                 if (!chatDoc.exists()) {
-                    await setDoc(doc(db, "chats", chatId), {
+                    await setDoc(doc(db, "chats", chat极狐 Id), {
                         participants: [currentUser.uid, targetUserId],
                         createdAt: serverTimestamp(),
                         type: 'private',
@@ -792,8 +789,8 @@
                 setupChatListeners();
                 
             } catch (error) {
-                console.error("Error loading chat:", error);
-                showErrorState("Error loading chat");
+                console.error("Error loading chat:",极狐 error);
+                showErrorState("极狐 Error loading chat");
             }
         }
 
@@ -904,67 +901,6 @@
             }
         }
 
-        // Accept friend request
-        async function acceptRequest() {
-            try {
-                // Update request status
-                const requestRef = doc(db, "users", currentUser.uid, "requests", targetUserId);
-                await updateDoc(requestRef, {
-                    status: 'accepted',
-                    respondedAt: serverTimestamp()
-                });
-                
-                // Add to friends list for both users
-                await setDoc(doc(db, "users", currentUser.uid, "friends", targetUserId), {
-                    userId: targetUserId,
-                    username: targetUserData.username,
-                    addedAt: serverTimestamp(),
-                    unreadCount: 0
-                });
-                
-                await setDoc(doc(db, "users", targetUserId, "friends", currentUser.uid), {
-                    userId: currentUser.uid,
-                    username: currentUserData.username,
-                    addedAt: serverTimestamp(),
-                    unreadCount: 0
-                });
-                
-                // Create a private chat room
-                chatId = [currentUser.uid, targetUserId].sort().join('_');
-                await setDoc(doc(db, "chats", chatId), {
-                    participants: [currentUser.uid, targetUserId],
-                    createdAt: serverTimestamp(),
-                    type: 'private'
-                });
-                
-                // Refresh page to load chat
-                window.location.reload();
-                
-            } catch (error) {
-                console.error("Error accepting friend request:", error);
-                alert("Failed to accept friend request. Please try again.");
-            }
-        }
-
-        // Reject friend request
-        async function rejectRequest() {
-            try {
-                // Update request status
-                const requestRef = doc(db, "users", currentUser.uid, "requests", targetUserId);
-                await updateDoc(requestRef, {
-                    status: 'rejected',
-                    respondedAt: serverTimestamp()
-                });
-                
-                // Go back to search page
-                goToSearch();
-                
-            } catch (error) {
-                console.error("Error rejecting friend request:", error);
-                alert("Failed to reject friend request. Please try again.");
-            }
-        }
-
         // Cancel friend request
         async function cancelRequest() {
             try {
@@ -979,6 +915,11 @@
                 console.error("Error canceling friend request:", error);
                 alert("Failed to cancel friend request. Please try again.");
             }
+        }
+
+        // Go to requests tab in search page
+        function goToRequests() {
+            window.location.href = 'search.html#requests';
         }
 
         // Format time ago
