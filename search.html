@@ -220,6 +220,7 @@
             flex: 1;
             overflow-y: auto;
             padding: 16px;
+            padding-bottom: 20px;
         }
 
         .section {
@@ -417,7 +418,7 @@
 
         @keyframes spin {
             0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            to { transform: rotate(360deg); }
         }
     </style>
 </head>
@@ -658,7 +659,13 @@
                 const results = [];
                 querySnapshot.forEach((doc) => {
                     if (doc.id !== currentUser.uid) {
-                        results.push({ id: doc.id, ...doc.data() });
+                        // Only include public information (username and district)
+                        const userData = doc.data();
+                        results.push({ 
+                            id: doc.id, 
+                            username: userData.username,
+                            district: userData.district
+                        });
                     }
                 });
                 
@@ -688,8 +695,7 @@
                         <div class="user-avatar">${user.username.charAt(0).toUpperCase()}</div>
                         <div class="user-info">
                             <div class="user-name">@${user.username}</div>
-                            <div class="user-details">${user.firstName} ${user.lastName}</div>
-                            <div class="user-district">${user.district} District • ${user.class}</div>
+                            <div class="user-district">${user.district} District</div>
                         </div>
                     `;
                     userEl.addEventListener('click', () => openChat(user));
