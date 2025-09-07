@@ -340,6 +340,7 @@
 
         .input-area.active {
             display: block;
+            animation: fadeIn 0.3s ease;
         }
 
         .message-input-container {
@@ -427,7 +428,7 @@
 <body>
     <header>
         <div class="header-left">
-            <button class="back-btn" onclick="goBack()">
+            <button class="back-btn" id="back-btn">
                 <i class="fas fa-arrow-left"></i>
             </button>
             <div class="user-info">
@@ -436,10 +437,10 @@
             </div>
         </div>
         <div class="header-right">
-            <button class="icon-btn" title="Search" onclick="goToSearch()">
+            <button class="icon-btn" id="search-btn" title="Search">
                 <i class="fas fa-search"></i>
             </button>
-            <button class="icon-btn" title="Home" onclick="goHome()">
+            <button class="icon-btn" id="home-btn" title="Home">
                 <i class="fas fa-home"></i>
             </button>
         </div>
@@ -516,6 +517,9 @@
         const chatInput = document.getElementById('chat-input');
         const sendBtn = document.getElementById('send-btn');
         const loadingState = document.getElementById('loading-state');
+        const backBtn = document.getElementById('back-btn');
+        const searchBtn = document.getElementById('search-btn');
+        const homeBtn = document.getElementById('home-btn');
 
         // Global variables
         let currentUserData = null;
@@ -535,6 +539,11 @@
                 showErrorState("No user specified. Please go back and select a user to chat with.");
                 return;
             }
+
+            // Set up event listeners
+            backBtn.addEventListener('click', goBack);
+            searchBtn.addEventListener('click', goToSearch);
+            homeBtn.addEventListener('click', goHome);
 
             // Check authentication state
             onAuthStateChanged(auth, async (user) => {
@@ -633,12 +642,16 @@
                 ` : ''}
                 
                 <div class="action-buttons">
-                    <button class="btn btn-primary" onclick="acceptRequest()">Accept</button>
-                    <button class="btn btn-danger" onclick="rejectRequest()">Reject</button>
+                    <button class="btn btn-primary" id="accept-btn">Accept</button>
+                    <button class="btn btn-danger" id="reject-btn">Reject</button>
                 </div>
             `;
             
             chatContainer.appendChild(requestContainer);
+            
+            // Add event listeners
+            document.getElementById('accept-btn').addEventListener('click', acceptRequest);
+            document.getElementById('reject-btn').addEventListener('click', rejectRequest);
         }
 
         // Show outgoing friend request state
@@ -671,12 +684,16 @@
                 </div>
                 
                 <div class="action-buttons">
-                    <button class="btn btn-secondary" onclick="cancelRequest()">Cancel Request</button>
-                    <button class="btn btn-primary" onclick="goToSearch()">Wait</button>
+                    <button class="btn btn-secondary" id="cancel-btn">Cancel Request</button>
+                    <button class="btn btn-primary" id="wait-btn">Wait</button>
                 </div>
             `;
             
             chatContainer.appendChild(requestContainer);
+            
+            // Add event listeners
+            document.getElementById('cancel-btn').addEventListener('click', cancelRequest);
+            document.getElementById('wait-btn').addEventListener('click', goToSearch);
         }
 
         // Show no relationship state (can send friend request)
@@ -699,12 +716,16 @@
                 ></textarea>
                 
                 <div class="action-buttons">
-                    <button class="btn btn-primary" onclick="sendRequest()">Send Request</button>
-                    <button class="btn btn-secondary" onclick="goBack()">Cancel</button>
+                    <button class="btn btn-primary" id="send-request-btn">Send Request</button>
+                    <button class="btn btn-secondary" id="cancel-request-btn">Cancel</button>
                 </div>
             `;
             
             chatContainer.appendChild(requestContainer);
+            
+            // Add event listeners
+            document.getElementById('send-request-btn').addEventListener('click', sendRequest);
+            document.getElementById('cancel-request-btn').addEventListener('click', goBack);
         }
 
         // Show error state
@@ -721,11 +742,14 @@
                 <div class="state-message">${message}</div>
                 
                 <div class="action-buttons">
-                    <button class="btn btn-secondary" onclick="goBack()">Go Back</button>
+                    <button class="btn btn-secondary" id="error-back-btn">Go Back</button>
                 </div>
             `;
             
             chatContainer.appendChild(errorContainer);
+            
+            // Add event listener
+            document.getElementById('error-back-btn').addEventListener('click', goBack);
         }
 
         // Load chat between friends
