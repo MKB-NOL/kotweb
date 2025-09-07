@@ -947,7 +947,10 @@
                     if (userData.stories && userData.stories.length > 0) {
                         // Filter out expired stories (older than 24 hours)
                         const validStories = userData.stories.filter(story => {
-                            const storyTime = story.timestamp.toDate();
+                            // Convert Firestore timestamp to JavaScript Date
+                            const storyTime = story.timestamp.toDate
+                                ? story.timestamp.toDate()
+                                : new Date(story.timestamp);
                             const diffHours = (now - storyTime) / (1000 * 60 * 60);
                             return diffHours < 24;
                         });
@@ -983,7 +986,9 @@
                         if (userData.stories && userData.stories.length > 0) {
                             // Filter out expired stories
                             const validStories = userData.stories.filter(story => {
-                                const storyTime = story.timestamp.toDate();
+                                const storyTime = story.timestamp.toDate
+                                    ? story.timestamp.toDate()
+                                    : new Date(story.timestamp);
                                 const diffHours = (now - storyTime) / (1000 * 60 * 60);
                                 return diffHours < 24;
                             });
@@ -1043,7 +1048,9 @@
                     : previewStory.imageUrl;
                 
                 // Calculate time remaining
-                const storyTime = previewStory.timestamp.toDate();
+                const storyTime = previewStory.timestamp.toDate
+                    ? previewStory.timestamp.toDate()
+                    : new Date(previewStory.timestamp);
                 const now = new Date();
                 const diffMs = now - storyTime;
                 const diffHrs = 24 - Math.floor(diffMs / (1000 * 60 * 60));
@@ -1229,6 +1236,15 @@
                 showLoading();
                 textPostBtn.disabled = true;
                 
+                // Create a new story object with a regular timestamp
+                const newStory = {
+                    type: 'text',
+                    text: text,
+                    backgroundColor: selectedColor,
+                    textColor: textPreview.style.color,
+                    timestamp: new Date() // Use regular Date instead of serverTimestamp()
+                };
+                
                 // Add story to user's stories array
                 const userRef = doc(db, "users", currentUser.uid);
                 const userDoc = await getDoc(userRef);
@@ -1237,13 +1253,8 @@
                     const userData = userDoc.data();
                     const stories = userData.stories || [];
                     
-                    stories.push({
-                        type: 'text',
-                        text: text,
-                        backgroundColor: selectedColor,
-                        textColor: textPreview.style.color,
-                        timestamp: serverTimestamp()
-                    });
+                    // Add the new story
+                    stories.push(newStory);
                     
                     // Update user document with new stories array
                     await updateDoc(userRef, {
@@ -1294,6 +1305,13 @@
                     const data = await response.json();
                     const imageUrl = data.data.url;
                     
+                    // Create a new story object with a regular timestamp
+                    const newStory = {
+                        type: 'image',
+                        imageUrl: imageUrl,
+                        timestamp: new Date() // Use regular Date instead of serverTimestamp()
+                    };
+                    
                     // Add story to user's stories array
                     const userRef = doc(db, "users", currentUser.uid);
                     const userDoc = await getDoc(userRef);
@@ -1302,11 +1320,8 @@
                         const userData = userDoc.data();
                         const stories = userData.stories || [];
                         
-                        stories.push({
-                            type: 'image',
-                            imageUrl: imageUrl,
-                            timestamp: serverTimestamp()
-                        });
+                        // Add the new story
+                        stories.push(newStory);
                         
                         // Update user document with new stories array
                         await updateDoc(userRef, {
