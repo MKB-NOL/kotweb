@@ -1,0 +1,1011 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kotweb - Chat</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg: #000000;
+            --orange: #ff7a00;
+            --white: #ffffff;
+            --muted: #bfbfbf;
+            --error: #ff3333;
+            --success: #00cc66;
+            --glass: rgba(255,255,255,0.03);
+            --card-bg: #1a1a1a;
+            --highlight: rgba(255, 122, 0, 0.1);
+            --dropdown-bg: rgba(30, 30, 30, 0.95);
+            --chat-received: #1a1a1a;
+            --chat-sent: #262626;
+            --header-height: 60px;
+            --input-height: 70px;
+            font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--white);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Header Styles */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 16px;
+            height: var(--header-height);
+            background: rgba(0, 0, 0, 0.9);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .back-btn {
+            width: 38px;
+            height: 38px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+            border: none;
+            color: var(--white);
+            cursor: pointer;
+            border-radius: 50%;
+            font-size: 18px;
+            transition: background 0.2s;
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--orange);
+        }
+
+        .user-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .user-name {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .user-status {
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .icon-btn {
+            width: 38px;
+            height: 38px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+            border: none;
+            color: var(--white);
+            cursor: pointer;
+            border-radius: 50%;
+            font-size: 18px;
+            transition: background 0.2s;
+        }
+
+        .icon-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Main Chat Area */
+        main {
+            flex: 1;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .chat-container {
+            height: 100%;
+            overflow-y: auto;
+            padding: 16px;
+            padding-bottom: calc(var(--input-height) + 20px);
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            scroll-behavior: smooth;
+        }
+
+        /* Friend Request States */
+        .state-container {
+            padding: 20px;
+            text-align: center;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .state-icon {
+            font-size: 50px;
+            margin-bottom: 20px;
+            color: var(--orange);
+        }
+
+        .state-title {
+            font-size: 22px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .state-message {
+            color: var(--muted);
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .state-details {
+            background: var(--card-bg);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .detail-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .detail-label {
+            color: var(--muted);
+        }
+
+        .detail-value {
+            font-weight: 500;
+        }
+
+        .request-message {
+            background: var(--highlight);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: left;
+            border-left: 3px solid var(--orange);
+        }
+
+        .message-input {
+            width: 100%;
+            padding: 12px 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: var(--white);
+            resize: none;
+            min-height: 100px;
+            font-family: inherit;
+            font-size: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            outline: none;
+        }
+
+        .message-input:focus {
+            border-color: var(--orange);
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .btn {
+            padding: 12px 20px;
+            border-radius: 6px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 14px;
+            min-width: 100px;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: var(--orange);
+            color: black;
+        }
+
+        .btn-primary:hover {
+            background: #ff8c1a;
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--white);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-danger {
+            background: var(--error);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #ff5555;
+        }
+
+        /* Chat Messages */
+        .message {
+            max-width: 85%;
+            position: relative;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .message.received {
+            align-self: flex-start;
+        }
+
+        .message.sent {
+            align-self: flex-end;
+        }
+
+        .message-bubble {
+            padding: 12px 16px;
+            border-radius: 18px;
+            position: relative;
+        }
+
+        .message.received .message-bubble {
+            background: var(--chat-received);
+            border-radius: 0 18px 18px 18px;
+            border-left: 3px solid var(--orange);
+        }
+
+        .message.sent .message-bubble {
+            background: var(--chat-sent);
+            border-radius: 18px 0 18px 18px;
+            border-right: 3px solid var(--orange);
+        }
+
+        .message-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 6px;
+        }
+
+        .message-sender {
+            font-weight: 700;
+            font-size: 14px;
+            color: var(--orange);
+        }
+
+        .message-time {
+            font-size: 11px;
+            color: var(--muted);
+        }
+
+        .message-content {
+            font-size: 15px;
+            line-height: 1.4;
+            word-break: break-word;
+        }
+
+        .message-status {
+            font-size: 11px;
+            color: var(--muted);
+            text-align: right;
+            margin-top: 4px;
+        }
+
+        /* Input Area */
+        .input-area {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 12px 16px;
+            background: rgba(0, 0, 0, 0.9);
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            z-index: 90;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            display: none;
+        }
+
+        .input-area.active {
+            display: block;
+        }
+
+        .message-input-container {
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 12px 16px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: var(--white);
+            resize: none;
+            min-height: 46px;
+            max-height: 120px;
+            font-family: inherit;
+            font-size: 15px;
+            border-radius: 23px;
+            line-height: 1.4;
+            outline: none;
+        }
+
+        .chat-input:focus {
+            border-color: var(--orange);
+        }
+
+        .send-btn {
+            width: 46px;
+            height: 46px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--orange);
+            color: #000;
+            border: none;
+            cursor: pointer;
+            border-radius: 50%;
+            font-size: 18px;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Loading spinner */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top: 3px solid var(--orange);
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .state-container {
+                padding: 15px;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+            }
+            
+            .message {
+                max-width: 90%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-left">
+            <button class="back-btn" onclick="goBack()">
+                <i class="fas fa-arrow-left"></i>
+            </button>
+            <div class="user-info">
+                <div class="user-name" id="user-name">Loading...</div>
+                <div class="user-status" id="user-status">Connecting...</div>
+            </div>
+        </div>
+        <div class="header-right">
+            <button class="icon-btn" title="Search" onclick="goToSearch()">
+                <i class="fas fa-search"></i>
+            </button>
+            <button class="icon-btn" title="Home" onclick="goHome()">
+                <i class="fas fa-home"></i>
+            </button>
+        </div>
+    </header>
+
+    <main>
+        <div class="chat-container" id="chat-container">
+            <!-- Content will be dynamically loaded based on friendship status -->
+            <div class="state-container" id="loading-state">
+                <div class="loading"></div>
+                <p>Loading conversation...</p>
+            </div>
+        </div>
+    </main>
+
+    <div class="input-area" id="input-area">
+        <div class="message-input-container">
+            <textarea class="chat-input" id="chat-input" placeholder="Type your message..." rows="1"></textarea>
+            <button class="send-btn" id="send-btn">
+                <i class="fas fa-paper-plane"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-analytics.js";
+        import { 
+            getAuth, 
+            onAuthStateChanged,
+            signOut 
+        } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
+        import { 
+            getFirestore, 
+            collection, 
+            addDoc, 
+            query, 
+            where, 
+            orderBy, 
+            onSnapshot,
+            updateDoc,
+            deleteDoc,
+            doc,
+            serverTimestamp,
+            getDocs,
+            getDoc,
+            setDoc
+        } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAsfXkzcFVmsQLWGF_WqCPQWn7SRqkcvK8",
+            authDomain: "kotweb-dd995.firebaseapp.com",
+            projectId: "kotweb-dd995",
+            storageBucket: "kotweb-dd995.firebasestorage.app",
+            messagingSenderId: "534760591484",
+            appId: "1:534760591484:web:1c90379da7852ddec2f9f9",
+            measurementId: "G-9ZH53YSQZT"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // DOM elements
+        const userName = document.getElementById('user-name');
+        const userStatus = document.getElementById('user-status');
+        const chatContainer = document.getElementById('chat-container');
+        const inputArea = document.getElementById('input-area');
+        const chatInput = document.getElementById('chat-input');
+        const sendBtn = document.getElementById('send-btn');
+        const loadingState = document.getElementById('loading-state');
+
+        // Global variables
+        let currentUserData = null;
+        let currentUser = null;
+        let targetUserData = null;
+        let friendshipStatus = null;
+        let chatId = null;
+        let unsubscribeMessages = null;
+
+        // Get user ID from URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const targetUserId = urlParams.get('userId');
+
+        // Initialize the page
+        function init() {
+            if (!targetUserId) {
+                showErrorState("No user specified. Please go back and select a user to chat with.");
+                return;
+            }
+
+            // Check authentication state
+            onAuthStateChanged(auth, async (user) => {
+                if (user) {
+                    currentUser = user;
+                    try {
+                        // Get current user data from Firestore
+                        const userDoc = await getDoc(doc(db, "users", user.uid));
+                        if (userDoc.exists()) {
+                            currentUserData = userDoc.data();
+                            
+                            // Get target user data
+                            const targetUserDoc = await getDoc(doc(db, "users", targetUserId));
+                            if (targetUserDoc.exists()) {
+                                targetUserData = targetUserDoc.data();
+                                userName.textContent = `@${targetUserData.username}`;
+                                
+                                // Check friendship status
+                                await checkFriendshipStatus();
+                            } else {
+                                showErrorState("User not found. Please go back and try again.");
+                            }
+                        } else {
+                            showErrorState("User data not found. Please log in again.");
+                            setTimeout(() => signOut(auth), 2000);
+                        }
+                    } catch (error) {
+                        console.error("Error loading user data:", error);
+                        showErrorState("Error loading user data");
+                    }
+                } else {
+                    // Redirect to login if not authenticated
+                    window.location.href = 'login.html';
+                }
+            });
+        }
+
+        // Check friendship status between current user and target user
+        async function checkFriendshipStatus() {
+            try {
+                // Check if users are friends
+                const friendDoc = await getDoc(doc(db, "users", currentUser.uid, "friends", targetUserId));
+                
+                if (friendDoc.exists()) {
+                    // Users are friends - load chat
+                    friendshipStatus = "friends";
+                    userStatus.textContent = "Online";
+                    loadChat();
+                    return;
+                }
+                
+                // Check for pending requests
+                const incomingRequestDoc = await getDoc(doc(db, "users", currentUser.uid, "requests", targetUserId));
+                const outgoingRequestDoc = await getDoc(doc(db, "users", targetUserId, "requests", currentUser.uid));
+                
+                if (incomingRequestDoc.exists()) {
+                    const requestData = incomingRequestDoc.data();
+                    friendshipStatus = "incoming_request";
+                    userStatus.textContent = "Friend request received";
+                    showIncomingRequestState(requestData);
+                } else if (outgoingRequestDoc.exists()) {
+                    const requestData = outgoingRequestDoc.data();
+                    friendshipStatus = "outgoing_request";
+                    userStatus.textContent = "Friend request sent";
+                    showOutgoingRequestState(requestData);
+                } else {
+                    // No existing relationship - show option to send request
+                    friendshipStatus = "no_relationship";
+                    userStatus.textContent = "Not connected";
+                    showNoRelationshipState();
+                }
+            } catch (error) {
+                console.error("Error checking friendship status:", error);
+                showErrorState("Error checking relationship status");
+            }
+        }
+
+        // Show incoming friend request state
+        function showIncomingRequestState(requestData) {
+            loadingState.style.display = 'none';
+            
+            const requestContainer = document.createElement('div');
+            requestContainer.className = 'state-container';
+            requestContainer.innerHTML = `
+                <div class="state-icon">
+                    <i class="fas fa-user-plus"></i>
+                </div>
+                <div class="state-title">FRIEND REQUEST</div>
+                <div class="state-message">@${targetUserData.username} wants to be your friend</div>
+                
+                ${requestData.message ? `
+                    <div class="request-message">
+                        <div class="state-message">Their message:</div>
+                        <div class="state-message">"${requestData.message}"</div>
+                    </div>
+                ` : ''}
+                
+                <div class="action-buttons">
+                    <button class="btn btn-primary" onclick="acceptRequest()">Accept</button>
+                    <button class="btn btn-danger" onclick="rejectRequest()">Reject</button>
+                </div>
+            `;
+            
+            chatContainer.appendChild(requestContainer);
+        }
+
+        // Show outgoing friend request state
+        function showOutgoingRequestState(requestData) {
+            loadingState.style.display = 'none';
+            
+            const requestTime = requestData.timestamp?.toDate();
+            const timeAgo = formatTimeAgo(requestTime);
+            
+            const requestContainer = document.createElement('div');
+            requestContainer.className = 'state-container';
+            requestContainer.innerHTML = `
+                <div class="state-icon">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="state-title">REQUEST PENDING</div>
+                <div class="state-message">Your friend request to @${targetUserData.username} is pending</div>
+                
+                <div class="state-details">
+                    <div class="detail-item">
+                        <span class="detail-label">Sent:</span>
+                        <span class="detail-value">${timeAgo}</span>
+                    </div>
+                    ${requestData.message ? `
+                        <div class="detail-item">
+                            <span class="detail-label">Your message:</span>
+                            <span class="detail-value">"${requestData.message}"</span>
+                        </div>
+                    ` : ''}
+                </div>
+                
+                <div class="action-buttons">
+                    <button class="btn btn-secondary" onclick="cancelRequest()">Cancel Request</button>
+                    <button class="btn btn-primary" onclick="goToSearch()">Wait</button>
+                </div>
+            `;
+            
+            chatContainer.appendChild(requestContainer);
+        }
+
+        // Show no relationship state (can send friend request)
+        function showNoRelationshipState() {
+            loadingState.style.display = 'none';
+            
+            const requestContainer = document.createElement('div');
+            requestContainer.className = 'state-container';
+            requestContainer.innerHTML = `
+                <div class="state-icon">
+                    <i class="fas fa-user-plus"></i>
+                </div>
+                <div class="state-title">ADD FRIEND</div>
+                <div class="state-message">Send a friend request to @${targetUserData.username}</div>
+                
+                <textarea 
+                    class="message-input" 
+                    id="request-message" 
+                    placeholder="Why do you want to be friends? (optional)"
+                ></textarea>
+                
+                <div class="action-buttons">
+                    <button class="btn btn-primary" onclick="sendRequest()">Send Request</button>
+                    <button class="btn btn-secondary" onclick="goBack()">Cancel</button>
+                </div>
+            `;
+            
+            chatContainer.appendChild(requestContainer);
+        }
+
+        // Show error state
+        function showErrorState(message) {
+            loadingState.style.display = 'none';
+            
+            const errorContainer = document.createElement('div');
+            errorContainer.className = 'state-container';
+            errorContainer.innerHTML = `
+                <div class="state-icon">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <div class="state-title">ERROR</div>
+                <div class="state-message">${message}</div>
+                
+                <div class="action-buttons">
+                    <button class="btn btn-secondary" onclick="goBack()">Go Back</button>
+                </div>
+            `;
+            
+            chatContainer.appendChild(errorContainer);
+        }
+
+        // Load chat between friends
+        async function loadChat() {
+            try {
+                loadingState.style.display = 'none';
+                
+                // Create or get chat ID
+                chatId = [currentUser.uid, targetUserId].sort().join('_');
+                
+                // Check if chat exists, if not create it
+                const chatDoc = await getDoc(doc(db, "chats", chatId));
+                if (!chatDoc.exists()) {
+                    await setDoc(doc(db, "chats", chatId), {
+                        participants: [currentUser.uid, targetUserId],
+                        createdAt: serverTimestamp(),
+                        type: 'private',
+                        lastMessage: '',
+                        lastTimestamp: serverTimestamp()
+                    });
+                }
+                
+                // Load messages
+                const messagesRef = collection(db, "chats", chatId, "messages");
+                const q = query(messagesRef, orderBy("timestamp", "asc"));
+                
+                unsubscribeMessages = onSnapshot(q, (snapshot) => {
+                    chatContainer.innerHTML = '';
+                    
+                    snapshot.forEach((doc) => {
+                        const message = doc.data();
+                        displayMessage(message);
+                    });
+                    
+                    scrollToBottom();
+                });
+                
+                // Show input area
+                inputArea.classList.add('active');
+                setupChatListeners();
+                
+            } catch (error) {
+                console.error("Error loading chat:", error);
+                showErrorState("Error loading chat");
+            }
+        }
+
+        // Display a message in the chat
+        function displayMessage(message) {
+            const messageEl = document.createElement('div');
+            messageEl.classList.add('message');
+            messageEl.classList.add(message.uid === currentUser.uid ? 'sent' : 'received');
+            
+            const formattedTime = formatTime(message.timestamp?.toDate());
+            
+            messageEl.innerHTML = `
+                <div class="message-bubble">
+                    <div class="message-content">${message.text}</div>
+                    <div class="message-time">${formattedTime}</div>
+                    ${message.uid === currentUser.uid ? `
+                        <div class="message-status">
+                            <i class="fas fa-check-double"></i> Delivered
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+            
+            chatContainer.appendChild(messageEl);
+        }
+
+        // Set up chat event listeners
+        function setupChatListeners() {
+            sendBtn.addEventListener('click', sendMessage);
+            
+            chatInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+                
+                // Auto-resize textarea
+                setTimeout(() => {
+                    chatInput.style.height = 'auto';
+                    chatInput.style.height = Math.min(chatInput.scrollHeight, 120) + 'px';
+                }, 0);
+            });
+        }
+
+        // Send a message
+        async function sendMessage() {
+            const text = chatInput.value.trim();
+            if (!text) return;
+            
+            try {
+                const messagesRef = collection(db, "chats", chatId, "messages");
+                
+                await addDoc(messagesRef, {
+                    text: text,
+                    uid: currentUser.uid,
+                    username: currentUserData.username,
+                    timestamp: serverTimestamp()
+                });
+                
+                // Update chat last message
+                await updateDoc(doc(db, "chats", chatId), {
+                    lastMessage: text,
+                    lastTimestamp: serverTimestamp()
+                });
+                
+                // Clear input
+                chatInput.value = '';
+                chatInput.style.height = 'auto';
+                
+            } catch (error) {
+                console.error("Error sending message:", error);
+                alert("Failed to send message. Please try again.");
+            }
+        }
+
+        // Send friend request
+        async function sendRequest() {
+            const messageInput = document.getElementById('request-message');
+            const message = messageInput ? messageInput.value.trim() : '';
+            
+            try {
+                // Create request in target user's requests collection
+                await setDoc(doc(db, "users", targetUserId, "requests", currentUser.uid), {
+                    userId: currentUser.uid,
+                    username: currentUserData.username,
+                    message: message,
+                    type: 'incoming',
+                    status: 'pending',
+                    timestamp: serverTimestamp()
+                });
+                
+                // Create request in current user's requests collection
+                await setDoc(doc(db, "users", currentUser.uid, "requests", targetUserId), {
+                    userId: targetUserId,
+                    username: targetUserData.username,
+                    message: message,
+                    type: 'outgoing',
+                    status: 'pending',
+                    timestamp: serverTimestamp()
+                });
+                
+                // Refresh page to show outgoing request state
+                window.location.reload();
+                
+            } catch (error) {
+                console.error("Error sending friend request:", error);
+                alert("Failed to send friend request. Please try again.");
+            }
+        }
+
+        // Accept friend request
+        async function acceptRequest() {
+            try {
+                // Update request status
+                const requestRef = doc(db, "users", currentUser.uid, "requests", targetUserId);
+                await updateDoc(requestRef, {
+                    status: 'accepted',
+                    respondedAt: serverTimestamp()
+                });
+                
+                // Add to friends list for both users
+                await setDoc(doc(db, "users", currentUser.uid, "friends", targetUserId), {
+                    userId: targetUserId,
+                    username: targetUserData.username,
+                    addedAt: serverTimestamp(),
+                    unreadCount: 0
+                });
+                
+                await setDoc(doc(db, "users", targetUserId, "friends", currentUser.uid), {
+                    userId: currentUser.uid,
+                    username: currentUserData.username,
+                    addedAt: serverTimestamp(),
+                    unreadCount: 0
+                });
+                
+                // Create a private chat room
+                chatId = [currentUser.uid, targetUserId].sort().join('_');
+                await setDoc(doc(db, "chats", chatId), {
+                    participants: [currentUser.uid, targetUserId],
+                    createdAt: serverTimestamp(),
+                    type: 'private'
+                });
+                
+                // Refresh page to load chat
+                window.location.reload();
+                
+            } catch (error) {
+                console.error("Error accepting friend request:", error);
+                alert("Failed to accept friend request. Please try again.");
+            }
+        }
+
+        // Reject friend request
+        async function rejectRequest() {
+            try {
+                // Update request status
+                const requestRef = doc(db, "users", currentUser.uid, "requests", targetUserId);
+                await updateDoc(requestRef, {
+                    status: 'rejected',
+                    respondedAt: serverTimestamp()
+                });
+                
+                // Go back to search page
+                goToSearch();
+                
+            } catch (error) {
+                console.error("Error rejecting friend request:", error);
+                alert("Failed to reject friend request. Please try again.");
+            }
+        }
+
+        // Cancel friend request
+        async function cancelRequest() {
+            try {
+                // Delete request from both users
+                await deleteDoc(doc(db, "users", currentUser.uid, "requests", targetUserId));
+                await deleteDoc(doc(db, "users", targetUserId, "requests", currentUser.uid));
+                
+                // Go back to search page
+                goToSearch();
+                
+            } catch (error) {
+                console.error("Error canceling friend request:", error);
+                alert("Failed to cancel friend request. Please try again.");
+            }
+        }
+
+        // Format time ago
+        function formatTimeAgo(date) {
+            if (!date) return 'Unknown time';
+            
+            const now = new Date();
+            const diff = now - date;
+            
+            if (diff < 60000) return 'Just now';
+            if (diff < 3600000) return `${Math.floor(diff / 60000)} minutes ago`;
+            if (diff < 86400000) return `${Math.floor(diff / 3600000)} hours ago`;
+            
+            return date.toLocaleDateString();
+        }
+
+        // Format time
+        function formatTime(date) {
+            if (!date) return 'Just now';
+            
+            const now = new Date();
+            const diff = now - date;
+            
+            if (diff < 60000) return 'Just now';
+            if (diff < 3600000) return `${Math.floor(diff / 60000)} min ago`;
+            
+            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+
+        // Scroll to bottom of chat
+        function scrollToBottom() {
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        // Go back to previous page
+        function goBack() {
+            window.history.back();
+        }
+
+        // Go to search page
+        function goToSearch() {
+            window.location.href = 'search.html';
+        }
+
+        // Go to home page
+        function goHome() {
+            window.location.href = 'home.html';
+        }
+
+        // Initialize the app
+        init();
+    </script>
+</body>
+</html>
